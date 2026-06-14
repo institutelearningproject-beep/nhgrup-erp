@@ -1,0 +1,3534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NH Bienes Raíces — Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #b45309;
+      --primary-dark: #92400e;
+      --accent:       #d97706;
+      --bg:           #f7f4ef;
+      --card:         #ffffff;
+      --border:       #e8e2d9;
+      --text:         #1c1714;
+      --muted:        #7c6f63;
+      --error:        #dc2626;
+      --sidebar-bg:   #1e1a17;
+      --sidebar-w:    240px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      z-index: 100;
+      box-shadow: 4px 0 24px rgba(0,0,0,.18);
+    }
+
+    .sidebar-brand {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-brand .logo {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,.15);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .sidebar-brand .brand-info h2 {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .sidebar-brand .brand-info span {
+      color: rgba(255,255,255,.5);
+      font-size: 11px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 0;
+      overflow-y: auto;
+    }
+    .nav-section {
+      padding: 8px 16px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.3);
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 20px;
+      color: rgba(255,255,255,.65);
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 0;
+      transition: background .15s, color .15s;
+      text-decoration: none;
+      user-select: none;
+    }
+    .nav-item svg { flex-shrink: 0; }
+    .nav-item:hover {
+      background: rgba(255,255,255,.07);
+      color: #fff;
+    }
+    .nav-item.active {
+      background: rgba(212,119,0,.18);
+      color: #fff;
+      font-weight: 600;
+      border-left: 3px solid var(--accent);
+    }
+    .nav-item .badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .user-avatar {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .user-details { flex: 1; min-width: 0; }
+    .user-details strong {
+      display: block;
+      color: #fff;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .user-details span {
+      color: rgba(255,255,255,.45);
+      font-size: 11px;
+    }
+    .btn-logout {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,.4);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      transition: color .15s;
+    }
+    .btn-logout:hover { color: #fff; }
+
+    /* ── Main ── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* topbar */
+    .topbar {
+      background: rgba(255,255,255,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-left h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .topbar-left p {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar-date {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* content */
+    .content {
+      padding: 28px;
+      flex: 1;
+    }
+
+    /* ── Sección oculta por defecto ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Inicio ── */
+    .welcome-banner {
+      background: linear-gradient(135deg, #92400e 0%, #b45309 50%, #d97706 100%);
+      border-radius: 16px;
+      padding: 28px 32px;
+      color: #fff;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 32px rgba(180,83,9,.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .welcome-banner::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,.07);
+      border-radius: 50%;
+    }
+    .welcome-banner::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: 80px;
+      width: 240px; height: 240px;
+      background: rgba(255,255,255,.04);
+      border-radius: 50%;
+    }
+    .welcome-banner h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .welcome-banner p {
+      font-size: 14px;
+      opacity: .85;
+    }
+    .welcome-banner .banner-icon {
+      font-size: 52px;
+      opacity: .25;
+      line-height: 1;
+    }
+
+    /* stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .stat-card:hover {
+      box-shadow: 0 8px 28px rgba(180,83,9,.1);
+      transform: translateY(-2px);
+    }
+    .stat-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon.blue   { background: #fef3e2; color: var(--primary); }
+    .stat-icon.green  { background: #f0fdf4; color: #16a34a; }
+    .stat-icon.amber  { background: #fffbeb; color: #d97706; }
+    .stat-icon.purple { background: #faf5ff; color: #7c3aed; }
+
+    .stat-info { flex: 1; }
+    .stat-info .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-info .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .stat-info .stat-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+
+    /* modules grid */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .module-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      cursor: pointer;
+      transition: box-shadow .15s, border-color .15s, transform .1s;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .module-card:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .module-card-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 22px;
+    }
+    .module-card-icon.blue   { background: #eff6ff; }
+    .module-card-icon.green  { background: #f0fdf4; }
+    .module-card-icon.amber  { background: #fffbeb; }
+    .module-card-icon.purple { background: #faf5ff; }
+
+    .module-card-body h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .module-card-body p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .module-card-body .mod-status {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+    }
+    .mod-status.active  { background: #dcfce7; color: #15803d; }
+    .mod-status.soon    { background: #f1f5f9; color: #64748b; }
+
+    /* ── Clientes toolbar ── */
+    .clientes-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .clientes-filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 9px 12px 9px 34px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text);
+      background: var(--card);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .search-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(217,119,6,.15);
+    }
+    .clientes-filters select {
+      padding: 9px 32px 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text);
+      background: var(--card);
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color .15s;
+    }
+    .clientes-filters select:focus { border-color: var(--accent); }
+
+    .btn-add {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: var(--primary-dark); }
+
+    .clientes-count {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Tabla ── */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .clientes-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .clientes-table thead tr {
+      background: #faf6f0;
+      border-bottom: 1px solid var(--border);
+    }
+    .clientes-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .clientes-table td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #f3ede5;
+      color: var(--text);
+      vertical-align: middle;
+    }
+    .clientes-table tbody tr:last-child td { border-bottom: none; }
+    .clientes-table tbody tr:hover td { background: #fdf9f4; }
+
+    .tipo-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .tipo-vendedor    { background: #eff6ff; color: #1d4ed8; }
+    .tipo-arrendador  { background: #f0fdf4; color: #15803d; }
+    .tipo-arrendatario{ background: #fffbeb; color: #b45309; }
+    .tipo-comprador   { background: #faf5ff; color: #7c3aed; }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 6px;
+      color: var(--muted);
+      transition: background .15s, color .15s;
+    }
+    .btn-icon:hover { background: #f3ede5; color: var(--text); }
+    .btn-icon.del:hover { background: #fef2f2; color: var(--error); }
+
+    .table-empty {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px;
+      color: var(--muted);
+      gap: 10px;
+    }
+    .table-empty p { font-size: 14px; }
+    .table-empty.show { display: flex; }
+    .btn-add-sm {
+      padding: 8px 18px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .btn-add-sm:hover { background: var(--primary-dark); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(28,20,16,.5);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 500px;
+      border: 1px solid rgba(255,255,255,.8);
+      box-shadow: 0 32px 80px rgba(28,20,16,.22), 0 0 0 1px rgba(255,255,255,.5) inset;
+      animation: fadeUp .22s cubic-bezier(.16,1,.3,1);
+    }
+    .modal-box {
+      background: rgba(255,255,255,.95) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border-radius: 18px !important;
+      border: 1px solid rgba(255,255,255,.8) !important;
+      box-shadow: 0 32px 80px rgba(28,20,16,.22), 0 0 0 1px rgba(255,255,255,.5) inset !important;
+      animation: fadeUp .22s cubic-bezier(.16,1,.3,1);
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h3 { font-size: 16px; font-weight: 700; color: var(--text); }
+    .modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      padding: 4px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+    }
+    .modal-close:hover { background: rgba(0,0,0,.06); color: var(--text); }
+    .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-body .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .modal-body label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .req { color: var(--error); }
+    .modal-body input,
+    .modal-body select {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .modal-body input:focus,
+    .modal-body select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(217,119,6,.15);
+    }
+    .modal-body input.error,
+    .modal-body select.error { border-color: var(--error); }
+    .modal-body .field-error {
+      font-size: 11px;
+      color: var(--error);
+      display: none;
+    }
+    .modal-body .field-error.show { display: block; }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-cancel {
+      padding: 9px 18px;
+      background: rgba(0,0,0,.04);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-cancel:hover { background: rgba(0,0,0,.08); }
+    .btn-save {
+      padding: 9px 20px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-save:hover { background: var(--primary-dark); }
+
+    /* ── Seguimientos ── */
+    .seg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .seg-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: box-shadow .15s, border-color .15s, transform .1s;
+    }
+    .seg-card:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .seg-card.cerrado {
+      border-color: #86efac;
+      background: #f0fdf4;
+    }
+    .seg-card.cerrado:hover {
+      border-color: #22c55e;
+      box-shadow: 0 4px 20px rgba(34,197,94,.15);
+    }
+    .seg-cerrado-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      background: #dcfce7;
+      color: #15803d;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    /* ── Alertas & Notificaciones ── */
+    .alertas-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .al-stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .al-stat-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .al-stat-val { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+    .al-stat-lbl { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    .alertas-tabs {
+      display: flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      width: fit-content;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      padding: 7px 20px;
+      border: none;
+      background: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--muted);
+      transition: background .15s, color .15s;
+    }
+    .tab-btn.active {
+      background: var(--card);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+
+    .alerta-list { display: flex; flex-direction: column; gap: 10px; }
+    .alerta-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: box-shadow .15s, border-color .15s;
+    }
+    .alerta-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); border-color: #cbd5e1; }
+    .al-canal-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .al-canal-email    { background: #eff6ff; color: #1e40af; }
+    .al-canal-sms      { background: #f0fdf4; color: #15803d; }
+    .al-canal-whatsapp { background: #f0fdf4; color: #16a34a; }
+    .al-body { flex: 1; min-width: 0; }
+    .al-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
+    .al-cliente { font-size: 14px; font-weight: 700; color: var(--text); }
+    .al-asunto  { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .al-msg     { font-size: 12px; color: var(--muted); line-height: 1.55; }
+    .al-meta    { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .al-fecha   { font-size: 11px; color: var(--muted); }
+
+    .canal-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 9px; border-radius: 999px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    }
+    .canal-email    { background: #dbeafe; color: #1d4ed8; }
+    .canal-sms      { background: #d1fae5; color: #065f46; }
+    .canal-whatsapp { background: #dcfce7; color: #15803d; }
+
+    .estado-alerta {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 9px; border-radius: 999px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    }
+    .est-enviado   { background: #dcfce7; color: #15803d; }
+    .est-pendiente { background: #fef9c3; color: #854d0e; }
+    .est-fallido   { background: #fee2e2; color: #b91c1c; }
+
+    /* Config toggles */
+    .config-block { margin-bottom: 28px; }
+    .config-block-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--muted); margin-bottom: 12px;
+    }
+    .config-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      margin-bottom: 8px;
+    }
+    .config-item-info h5 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .config-item-info p  { font-size: 12px; color: var(--muted); }
+    .toggle-wrap { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: #cbd5e1; border-radius: 999px; cursor: pointer;
+      transition: background .2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px;
+      left: 3px; top: 3px;
+      background: #fff; border-radius: 50%;
+      transition: transform .2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    }
+    .toggle-wrap input:checked + .toggle-slider { background: var(--primary); }
+    .toggle-wrap input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    .canal-checks { display: flex; gap: 10px; flex-wrap: wrap; }
+    .canal-check-label {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; cursor: pointer;
+      user-select: none; transition: border-color .15s, background .15s;
+    }
+    .canal-check-label input { accent-color: var(--primary); cursor: pointer; }
+    .canal-check-label:has(input:checked) { border-color: var(--primary); background: #eff6ff; }
+    .seg-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+    .seg-card-header h4 { font-size: 14px; font-weight: 700; color: var(--text); }
+    .seg-card-header p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .seg-tipo-pill {
+      flex-shrink: 0;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .seg-tipo-venta        { background: #eff6ff; color: #1d4ed8; }
+    .seg-tipo-arrendamiento{ background: #f0fdf4; color: #15803d; }
+
+    .seg-progress-wrap { margin-bottom: 10px; }
+    .seg-progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .seg-progress-bar {
+      height: 5px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .seg-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 999px;
+      transition: width .3s;
+    }
+    .seg-etapa-current {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .seg-etapa-current span { color: var(--text); font-weight: 600; }
+
+    .seg-card-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-ver {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .btn-ver:hover { text-decoration: underline; }
+
+    .seg-tipo-detected {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #eff6ff;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .seg-tipo-detected.arrend { background: #f0fdf4; color: #15803d; }
+
+    /* ── Panel detalle ── */
+    .seg-panel-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(28,20,16,.45);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 300;
+      justify-content: flex-end;
+    }
+    .seg-panel-overlay.open { display: flex; }
+    .seg-panel {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-left: 1px solid rgba(232,226,217,.9);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      animation: slideIn .3s cubic-bezier(.16,1,.3,1);
+      box-shadow: -12px 0 60px rgba(28,20,16,.18);
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: .5; }
+      to   { transform: translateX(0); opacity: 1; }
+    }
+    .seg-panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 22px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .seg-panel-header h3 { font-size: 16px; font-weight: 700; color: var(--text); }
+    .seg-panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+
+    /* Stepper */
+    .etapa-block { margin-bottom: 24px; }
+    .etapa-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--primary);
+      padding: 6px 12px;
+      background: #eff6ff;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .paso-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f8fafc;
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .paso-item:last-child { border-bottom: none; }
+    .paso-item:hover { background: #f8fafc; border-radius: 8px; padding-left: 8px; }
+    .paso-check {
+      width: 22px; height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .paso-check.done {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .paso-check.done svg { display: block; }
+    .paso-check svg { display: none; }
+    .paso-label {
+      font-size: 14px;
+      color: var(--text);
+      flex: 1;
+    }
+    .paso-label.done {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+    .paso-num {
+      font-size: 11px;
+      color: var(--muted);
+      background: #f1f5f9;
+      border-radius: 4px;
+      padding: 2px 6px;
+      flex-shrink: 0;
+    }
+
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .modal-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .estado-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .estado-disponible     { background: #dcfce7; color: #15803d; }
+    .estado-vendida        { background: #eff6ff; color: #1d4ed8; }
+    .estado-alquilada      { background: #faf5ff; color: #7c3aed; }
+    .estado-en-negociacion { background: #fffbeb; color: #b45309; }
+
+    .op-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: capitalize;
+      background: #f1f5f9;
+      color: var(--muted);
+    }
+
+    /* próximamente placeholder */
+    .coming-soon {
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .coming-soon svg { margin-bottom: 12px; opacity: .4; }
+    .coming-soon h3  { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .coming-soon p   { font-size: 13px; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+      <div class="logo">NH</div>
+      <div class="brand-info">
+        <h2>NH Bienes Raíces</h2>
+        <span>ERP</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">General</div>
+
+      <a class="nav-item active" data-section="inicio" href="#">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Inicio
+      </a>
+
+      <a class="nav-item" data-section="propiedades" href="#">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        </svg>
+        Propiedades
+      </a>
+
+      <a class="nav-item" data-section="clientes" href="#">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Clientes
+      </a>
+
+      <a class="nav-item" data-section="seguimientos" href="#">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Seguimientos
+      </a>
+
+      <a class="nav-item" data-section="alertas" href="#" style="justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:10px">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          Alertas
+        </span>
+        <span id="navAlertaBadge" style="display:none;background:#ef4444;color:#fff;font-size:10px;font-weight:700;border-radius:999px;padding:1px 6px;min-width:18px;text-align:center">0</span>
+      </a>
+
+      <a class="nav-item" data-section="agentes" href="#">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          <path d="M21 21v-2a4 4 0 0 0-3-3.87"/>
+        </svg>
+        Agentes
+      </a>
+
+    </nav>
+
+    <div style="border-top:1px solid rgba(255,255,255,.08)">
+      <a class="nav-item" data-section="configuracion" href="#">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Configuración
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">A</div>
+        <div class="user-details">
+          <strong>Administrador</strong>
+          <span>admin@nhbienesraices.com</span>
+        </div>
+        <button class="btn-logout" title="Cerrar sesión" onclick="window.location.href='login.html'">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 id="pageTitle">Inicio</h1>
+        <p id="pageSubtitle">Resumen general del sistema</p>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-date" id="topbarDate"></span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── SECCIÓN: INICIO ── -->
+      <div class="section active" id="section-inicio">
+
+        <div class="welcome-banner">
+          <div>
+            <h2>Bienvenido, Administrador</h2>
+            <p>Aquí tienes un resumen del estado actual del sistema.</p>
+          </div>
+          <div class="banner-icon">🏢</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="statPropiedades">0</div>
+              <div class="stat-label">Propiedades</div>
+              <div class="stat-sub">Total registradas</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon green">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="statClientes">0</div>
+              <div class="stat-label">Clientes</div>
+              <div class="stat-sub">Contactos activos</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon amber">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Leads</div>
+              <div class="stat-sub">En seguimiento</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon purple">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Actividades</div>
+              <div class="stat-sub">Pendientes hoy</div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+
+      <!-- ── SECCIÓN: SEGUIMIENTOS ── -->
+      <div class="section" id="section-seguimientos">
+
+        <div class="clientes-toolbar">
+          <div class="clientes-filters">
+            <div class="search-wrap">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="searchSeg" placeholder="Buscar por cliente o propiedad…" />
+            </div>
+            <select id="filtroTipoSeg">
+              <option value="">Todos los procesos</option>
+              <option value="venta">Venta</option>
+              <option value="arrendamiento">Arrendamiento</option>
+            </select>
+          </div>
+          <button class="btn-add" onclick="abrirModalSeg()">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nuevo seguimiento
+          </button>
+        </div>
+
+        <div class="alertas-tabs" style="margin-bottom:16px">
+          <button class="tab-btn active" id="segTabTodos"    onclick="filtroEstadoSeg='todos';    actualizarTabsSeg(this); renderSeguimientos()">Todos</button>
+          <button class="tab-btn"        id="segTabProceso"  onclick="filtroEstadoSeg='proceso';  actualizarTabsSeg(this); renderSeguimientos()">En proceso</button>
+          <button class="tab-btn"        id="segTabCerrados" onclick="filtroEstadoSeg='cerrados'; actualizarTabsSeg(this); renderSeguimientos()">Cerrados</button>
+        </div>
+
+        <p class="clientes-count" id="segCount">0 seguimientos</p>
+
+        <!-- Tarjetas de seguimientos -->
+        <div class="seg-grid" id="segGrid"></div>
+        <div class="table-empty" id="segEmpty">
+          <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <p>No hay seguimientos registrados aún.</p>
+          <button class="btn-add-sm" onclick="abrirModalSeg()">Crear el primero</button>
+        </div>
+
+      </div>
+
+      <!-- MODAL: Nuevo seguimiento -->
+      <div class="modal-overlay" id="modalOverlaySeg" onclick="cerrarModalSeg(event)">
+        <div class="modal" style="max-width:480px">
+          <div class="modal-header">
+            <h3>Nuevo seguimiento</h3>
+            <button class="modal-close" onclick="cerrarModalSeg()">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <form id="segForm" novalidate>
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="segCliente">Cliente <span class="req">*</span></label>
+                <select id="segCliente">
+                  <option value="">Seleccionar cliente…</option>
+                </select>
+                <p class="field-error" id="errSegCliente">Selecciona un cliente.</p>
+              </div>
+              <div class="form-group">
+                <label for="segPropiedad">Propiedad <span class="req">*</span></label>
+                <select id="segPropiedad">
+                  <option value="">Seleccionar propiedad…</option>
+                </select>
+                <p class="field-error" id="errSegPropiedad">Selecciona una propiedad.</p>
+              </div>
+              <div class="form-group" id="segTipoWrap" style="display:none">
+                <label>Proceso detectado</label>
+                <div id="segTipoDetected" class="seg-tipo-detected"></div>
+              </div>
+              <div class="form-group">
+                <label for="segNotas">Notas iniciales</label>
+                <textarea id="segNotas" rows="3" placeholder="Observaciones, contexto…" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);resize:vertical;outline:none;font-family:inherit"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-cancel" onclick="cerrarModalSeg()">Cancelar</button>
+              <button type="submit" class="btn-save">Crear seguimiento</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- PANEL: Detalle de seguimiento -->
+      <div class="seg-panel-overlay" id="segPanelOverlay" onclick="cerrarPanel(event)">
+        <div class="seg-panel" id="segPanel">
+          <div class="seg-panel-header">
+            <div>
+              <h3 id="panelTitle">Seguimiento</h3>
+              <p id="panelSub" style="font-size:13px;color:var(--muted);margin-top:2px"></p>
+            </div>
+            <button class="modal-close" onclick="cerrarPanel()">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="seg-panel-body" id="segPanelBody"></div>
+        </div>
+      </div>
+
+      <!-- ── SECCIÓN: PROPIEDADES ── -->
+      <div class="section" id="section-propiedades">
+
+        <div class="clientes-toolbar">
+          <div class="clientes-filters">
+            <div class="search-wrap">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="searchPropiedad" placeholder="Buscar por nombre o dirección…" />
+            </div>
+            <select id="filtroTipoP">
+              <option value="">Todos los tipos</option>
+              <option value="casa">Casa</option>
+              <option value="departamento">Departamento</option>
+              <option value="apartamento">Apartamento</option>
+              <option value="local">Local</option>
+              <option value="terreno">Terreno</option>
+            </select>
+            <select id="filtroOperacion">
+              <option value="">Todas las operaciones</option>
+              <option value="venta">Venta</option>
+              <option value="alquiler">Alquiler</option>
+              <option value="compra">Compra</option>
+            </select>
+            <select id="filtroEstado">
+              <option value="">Todos los estados</option>
+              <option value="disponible">Disponible</option>
+              <option value="vendida">Vendida</option>
+              <option value="alquilada">Alquilada</option>
+              <option value="en negociación">En negociación</option>
+            </select>
+          </div>
+          <button class="btn-add" onclick="abrirModalP()">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Agregar propiedad
+          </button>
+        </div>
+
+        <p class="clientes-count" id="propiedadesCount">0 propiedades</p>
+
+        <div class="table-wrap">
+          <table class="clientes-table" id="propiedadesTable">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Operación</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="propiedadesTbody"></tbody>
+          </table>
+          <div class="table-empty" id="tableEmptyP">
+            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            <p>No hay propiedades registradas aún.</p>
+            <button class="btn-add-sm" onclick="abrirModalP()">Agregar la primera</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── MODAL: Agregar/Editar propiedad ── -->
+      <div class="modal-overlay" id="modalOverlayP" onclick="cerrarModalP(event)">
+        <div class="modal" style="max-width:560px">
+          <div class="modal-header">
+            <h3 id="modalTitleP">Agregar propiedad</h3>
+            <button class="modal-close" onclick="cerrarModalP()">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <form id="propiedadForm" novalidate>
+            <div class="modal-body" style="max-height:65vh;overflow-y:auto">
+
+              <!-- Datos básicos -->
+              <p class="modal-section-label">Datos básicos</p>
+              <div class="form-group">
+                <label for="pNombre">Nombre / Título <span class="req">*</span></label>
+                <input type="text" id="pNombre" placeholder="Ej. Apartamento en Los Palos Grandes" />
+                <p class="field-error" id="perrNombre">Campo requerido.</p>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="pTipo">Tipo <span class="req">*</span></label>
+                  <select id="pTipo">
+                    <option value="">Seleccionar…</option>
+                    <option value="casa">Casa</option>
+                    <option value="departamento">Departamento</option>
+                    <option value="apartamento">Apartamento</option>
+                    <option value="local">Local</option>
+                    <option value="terreno">Terreno</option>
+                  </select>
+                  <p class="field-error" id="perrTipo">Campo requerido.</p>
+                </div>
+                <div class="form-group">
+                  <label for="pOperacion">Operación <span class="req">*</span></label>
+                  <select id="pOperacion">
+                    <option value="">Seleccionar…</option>
+                    <option value="venta">Venta</option>
+                    <option value="alquiler">Alquiler</option>
+                    <option value="compra">Compra</option>
+                  </select>
+                  <p class="field-error" id="perrOperacion">Campo requerido.</p>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="pDireccion">Dirección</label>
+                <input type="text" id="pDireccion" placeholder="Ej. Av. Principal, Urb. Las Mercedes" />
+              </div>
+
+              <!-- Detalles físicos -->
+              <p class="modal-section-label" style="margin-top:8px">Detalles físicos</p>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label for="pM2">Metros²</label>
+                  <input type="number" id="pM2" placeholder="0" min="0" />
+                </div>
+                <div class="form-group">
+                  <label for="pHab">Habitaciones</label>
+                  <input type="number" id="pHab" placeholder="0" min="0" />
+                </div>
+                <div class="form-group">
+                  <label for="pBanos">Baños</label>
+                  <input type="number" id="pBanos" placeholder="0" min="0" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="pEstac">Estacionamiento</label>
+                <input type="number" id="pEstac" placeholder="0" min="0" />
+              </div>
+
+              <!-- Datos económicos -->
+              <p class="modal-section-label" style="margin-top:8px">Datos económicos</p>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="pPrecio">Precio <span class="req">*</span></label>
+                  <input type="number" id="pPrecio" placeholder="0.00" min="0" />
+                  <p class="field-error" id="perrPrecio">Campo requerido.</p>
+                </div>
+                <div class="form-group">
+                  <label for="pMoneda">Moneda</label>
+                  <select id="pMoneda">
+                    <option value="USD">USD $</option>
+                    <option value="MXN">MXN $</option>
+                    <option value="VES">VES Bs.</option>
+                    <option value="EUR">EUR €</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Estado -->
+              <p class="modal-section-label" style="margin-top:8px">Estado</p>
+              <div class="form-group">
+                <label for="pEstado">Estado de la propiedad <span class="req">*</span></label>
+                <select id="pEstado">
+                  <option value="">Seleccionar…</option>
+                  <option value="disponible">Disponible</option>
+                  <option value="vendida">Vendida</option>
+                  <option value="alquilada">Alquilada</option>
+                  <option value="en negociación">En negociación</option>
+                </select>
+                <p class="field-error" id="perrEstado">Campo requerido.</p>
+              </div>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-cancel" onclick="cerrarModalP()">Cancelar</button>
+              <button type="submit" class="btn-save">Guardar propiedad</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ── SECCIÓN: CLIENTES ── -->
+      <div class="section" id="section-clientes">
+
+        <!-- Barra de herramientas -->
+        <div class="clientes-toolbar">
+          <div class="clientes-filters">
+            <!-- Búsqueda -->
+            <div class="search-wrap">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="searchCliente" placeholder="Buscar por nombre o correo…" />
+            </div>
+            <!-- Filtro tipo -->
+            <select id="filtroTipo">
+              <option value="">Todos los tipos</option>
+              <option value="vendedor">Vendedor</option>
+              <option value="arrendador">Arrendador</option>
+              <option value="arrendatario">Arrendatario</option>
+              <option value="comprador">Comprador</option>
+            </select>
+          </div>
+          <button class="btn-add" onclick="abrirModal()">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Agregar cliente
+          </button>
+        </div>
+
+        <!-- Contador -->
+        <p class="clientes-count" id="clientesCount">0 clientes</p>
+
+        <!-- Tabla -->
+        <div class="table-wrap">
+          <table class="clientes-table" id="clientesTable">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>WhatsApp</th>
+                <th>Tipo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="clientesTbody">
+              <!-- filas dinámicas -->
+            </tbody>
+          </table>
+          <div class="table-empty" id="tableEmpty">
+            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <p>No hay clientes registrados aún.</p>
+            <button class="btn-add-sm" onclick="abrirModal()">Agregar el primero</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── MODAL: Agregar cliente ── -->
+      <div class="modal-overlay" id="modalOverlay" onclick="cerrarModal(event)">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 id="modalTitle">Agregar cliente</h3>
+            <button class="modal-close" onclick="cerrarModal()">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <form id="clienteForm" novalidate>
+            <div class="modal-body">
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="fNombre">Nombre <span class="req">*</span></label>
+                  <input type="text" id="fNombre" placeholder="Ej. María" />
+                  <p class="field-error" id="errNombre">Campo requerido.</p>
+                </div>
+                <div class="form-group">
+                  <label for="fApellido">Apellido <span class="req">*</span></label>
+                  <input type="text" id="fApellido" placeholder="Ej. González" />
+                  <p class="field-error" id="errApellido">Campo requerido.</p>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="fCorreo">Correo electrónico <span class="req">*</span></label>
+                <input type="email" id="fCorreo" placeholder="correo@ejemplo.com" />
+                <p class="field-error" id="errCorreo">Ingresa un correo válido.</p>
+              </div>
+              <div class="form-group">
+                <label for="fWhatsapp">WhatsApp</label>
+                <input type="tel" id="fWhatsapp" placeholder="+58 412 0000000" />
+              </div>
+              <div class="form-group">
+                <label for="fTipo">Tipo de cliente <span class="req">*</span></label>
+                <select id="fTipo">
+                  <option value="">Seleccionar…</option>
+                  <option value="vendedor">Vendedor</option>
+                  <option value="arrendador">Arrendador</option>
+                  <option value="arrendatario">Arrendatario</option>
+                  <option value="comprador">Comprador</option>
+                </select>
+                <p class="field-error" id="errTipo">Selecciona un tipo.</p>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+              <button type="submit" class="btn-save" id="btnGuardar">
+                <span class="btn-text">Guardar cliente</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ── SECCIÓN: ALERTAS ── -->
+      <div class="section" id="section-alertas">
+
+        <!-- Stats -->
+        <div class="alertas-stats">
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#eff6ff;color:#1e40af">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statAlTotal">0</div>
+              <div class="al-stat-lbl">Total alertas</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#dcfce7;color:#15803d">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statAlEnviadas">0</div>
+              <div class="al-stat-lbl">Enviadas</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#fef9c3;color:#854d0e">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".5" fill="currentColor"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statAlPendientes">0</div>
+              <div class="al-stat-lbl">Pendientes</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#dbeafe;color:#1d4ed8">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statAlEmail">0</div>
+              <div class="al-stat-lbl">Por email</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#dcfce7;color:#16a34a">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 13 19.79 19.79 0 0 1 1 4.18 2 2 0 0 1 2.18 2h3a2 2 0 0 1 2 1.72c.127.96.36 1.902.7 2.81a2 2 0 0 1-.45 2.11L6.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.908.34 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statAlSms">0</div>
+              <div class="al-stat-lbl">SMS / WhatsApp</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="clientes-toolbar">
+          <div class="clientes-filters">
+            <div class="search-wrap">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="searchAlerta" placeholder="Buscar por cliente o mensaje…" />
+            </div>
+            <select id="filtroCanal">
+              <option value="">Todos los canales</option>
+              <option value="email">Email</option>
+              <option value="sms">SMS</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+            <select id="filtroEstadoAl">
+              <option value="">Todos los estados</option>
+              <option value="enviado">Enviado</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="fallido">Fallido</option>
+            </select>
+          </div>
+          <button class="btn-add" onclick="abrirModalAlerta()">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nueva Alerta
+          </button>
+        </div>
+
+        <!-- Contador -->
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px" id="alertaCount"></p>
+
+        <!-- Tabs -->
+        <div class="alertas-tabs">
+          <button class="tab-btn active" id="tabBtnHistorial" onclick="switchTabAlertas('historial')">
+            Historial
+          </button>
+          <button class="tab-btn" id="tabBtnConfig" onclick="switchTabAlertas('config')">
+            Configuración
+          </button>
+        </div>
+
+        <!-- TAB: Historial -->
+        <div id="tabPanelHistorial">
+          <div class="alerta-list" id="alertaList"></div>
+          <div class="table-empty" id="alertaEmpty">
+            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#cbd5e1" stroke-width="1.5">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <p>No se encontraron alertas</p>
+          </div>
+        </div>
+
+        <!-- TAB: Configuración -->
+        <div id="tabPanelConfig" style="display:none">
+
+          <div class="config-block">
+            <p class="config-block-title">Disparadores automáticos</p>
+            <div class="config-item">
+              <div class="config-item-info">
+                <h5>Al completar una etapa</h5>
+                <p>Notifica al cliente cada vez que se finalice una etapa del proceso</p>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="config-item">
+              <div class="config-item-info">
+                <h5>Al cerrar un seguimiento</h5>
+                <p>Envía felicitaciones cuando el proceso completo está terminado</p>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="config-item">
+              <div class="config-item-info">
+                <h5>Al iniciar un seguimiento</h5>
+                <p>Informa al cliente que su proceso ha comenzado</p>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="config-item">
+              <div class="config-item-info">
+                <h5>Recordatorios de pasos pendientes</h5>
+                <p>Avisa al agente si hay pasos sin completar por más de 3 días</p>
+              </div>
+              <label class="toggle-wrap">
+                <input type="checkbox" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="config-block">
+            <p class="config-block-title">Canales habilitados</p>
+            <div class="canal-checks">
+              <label class="canal-check-label">
+                <input type="checkbox" checked />
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/>
+                </svg>
+                Email
+              </label>
+              <label class="canal-check-label">
+                <input type="checkbox" checked />
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 13 19.79 19.79 0 0 1 1 4.18 2 2 0 0 1 2.18 2h3a2 2 0 0 1 2 1.72c.127.96.36 1.902.7 2.81a2 2 0 0 1-.45 2.11L6.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.908.34 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/>
+                </svg>
+                SMS
+              </label>
+              <label class="canal-check-label">
+                <input type="checkbox" checked />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.122 1.526 5.854L.057 23.885l6.159-1.611A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.882 0-3.64-.523-5.138-1.433l-.368-.22-3.814.999 1.022-3.72-.24-.383A9.97 9.97 0 0 1 2 12C2 6.486 6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/>
+                </svg>
+                WhatsApp
+              </label>
+            </div>
+          </div>
+
+          <div class="config-block">
+            <p class="config-block-title">Plantillas de mensaje</p>
+            <div class="config-item" style="flex-direction:column;align-items:flex-start;gap:10px">
+              <div class="config-item-info">
+                <h5>Alerta de etapa completada</h5>
+                <p style="margin-top:6px">Hola {nombre}, te informamos que la etapa "{etapa}" de tu proceso ha sido completada exitosamente. Continuamos con la siguiente fase.</p>
+              </div>
+              <button style="font-size:12px;padding:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text)">✏️ Editar plantilla</button>
+            </div>
+            <div class="config-item" style="flex-direction:column;align-items:flex-start;gap:10px">
+              <div class="config-item-info">
+                <h5>Alerta de proceso cerrado</h5>
+                <p style="margin-top:6px">¡Felicidades {nombre}! Tu proceso de {tipo} ha concluido exitosamente. Ha sido un placer acompañarte. — NH Bienes Raíces</p>
+              </div>
+              <button style="font-size:12px;padding:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text)">✏️ Editar plantilla</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal: Nueva Alerta -->
+        <div class="modal-overlay" id="modalAlerta" onclick="if(event.target===this)cerrarModalAlerta()">
+          <div class="modal-box" style="max-width:480px">
+            <div class="modal-header">
+              <h3>Nueva Alerta</h3>
+              <button class="modal-close" onclick="cerrarModalAlerta()">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <form id="formAlerta" onsubmit="guardarAlerta(event)">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label>Cliente <span class="req">*</span></label>
+                  <select id="alCliente" required>
+                    <option value="">Seleccionar cliente…</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Canal de envío <span class="req">*</span></label>
+                  <select id="alCanal" required>
+                    <option value="">Seleccionar canal…</option>
+                    <option value="email">📧 Email</option>
+                    <option value="sms">📱 SMS</option>
+                    <option value="whatsapp">💬 WhatsApp</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Asunto <span class="req">*</span></label>
+                  <input type="text" id="alAsunto" placeholder="Ej: Avance en tu proceso de venta" required />
+                </div>
+                <div class="form-group">
+                  <label>Mensaje <span class="req">*</span></label>
+                  <textarea id="alMensaje" rows="4" placeholder="Escribe el mensaje para el cliente…" required
+                    style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);resize:vertical;outline:none;font-family:inherit"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Estado</label>
+                  <select id="alEstado">
+                    <option value="pendiente">Pendiente de envío</option>
+                    <option value="enviado">Marcar como enviado</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="cerrarModalAlerta()">Cancelar</button>
+                <button type="submit" class="btn-save">Guardar alerta</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div><!-- /section-alertas -->
+
+      <!-- ── SECCIÓN: AGENTES ── -->
+      <div class="section" id="section-agentes">
+
+        <!-- Stats -->
+        <div class="alertas-stats">
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#eff6ff;color:#1e40af">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statAgTotal">0</div>
+              <div class="al-stat-lbl">Total agentes</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#dcfce7;color:#15803d">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statAgActivos">0</div>
+              <div class="al-stat-lbl">Activos</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#fef3c7;color:#b45309">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statAgSeguimientos">0</div>
+              <div class="al-stat-lbl">Seguimientos asignados</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#f3e8ff;color:#7c3aed">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statAgSupervisores">0</div>
+              <div class="al-stat-lbl">Supervisores</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="clientes-toolbar">
+          <div class="clientes-filters">
+            <div class="search-wrap">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="searchAgente" placeholder="Buscar por nombre o correo…" />
+            </div>
+            <select id="filtroRolAg">
+              <option value="">Todos los roles</option>
+              <option value="agente">Agente</option>
+              <option value="supervisor">Supervisor</option>
+            </select>
+            <select id="filtroEstadoAg">
+              <option value="">Todos los estados</option>
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+          <button class="btn-add" onclick="abrirModalAgente()">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nuevo agente
+          </button>
+        </div>
+
+        <p class="clientes-count" id="agenteCount"></p>
+
+        <!-- Tabla de agentes -->
+        <div class="table-wrap">
+          <table class="clientes-table">
+            <thead>
+              <tr>
+                <th>Agente</th>
+                <th>Correo</th>
+                <th>WhatsApp</th>
+                <th>Rol</th>
+                <th>Seguimientos</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="agentesTbody"></tbody>
+          </table>
+          <div class="table-empty" id="agentesEmpty">
+            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#cbd5e1" stroke-width="1.5">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            </svg>
+            <p>No se encontraron agentes</p>
+          </div>
+        </div>
+
+        <!-- Permisos por rol -->
+        <div style="margin-top:28px;margin-bottom:8px">
+          <p class="config-block-title">Permisos por rol</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+            <!-- Agente -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <div style="background:#eff6ff;padding:12px 18px;border-bottom:1px solid #dbeafe;display:flex;align-items:center;gap:8px">
+                <span style="background:#1e40af;color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;text-transform:uppercase">Agente</span>
+              </div>
+              <div style="padding:14px 18px;display:flex;flex-direction:column;gap:9px;font-size:13px">
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ver clientes asignados</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Asignar seguimiento (cliente + propiedad)</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Actualizar pasos del seguimiento</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Enviar alertas al cliente (automático)</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ver alertas pendientes de sus seguimientos</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#94a3b8"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Crear o editar clientes</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#94a3b8"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Crear o editar propiedades</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#94a3b8"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Eliminar registros</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#94a3b8"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Ver módulo de Agentes</div>
+              </div>
+            </div>
+
+            <!-- Supervisor -->
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <div style="background:#f3e8ff;padding:12px 18px;border-bottom:1px solid #e9d5ff;display:flex;align-items:center;gap:8px">
+                <span style="background:#7c3aed;color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;text-transform:uppercase">Supervisor</span>
+              </div>
+              <div style="padding:14px 18px;display:flex;flex-direction:column;gap:9px;font-size:13px">
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Todo lo del rol Agente</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Crear, editar y eliminar clientes</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Crear, editar y eliminar propiedades</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Ver todos los seguimientos del equipo</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Gestionar alertas y configuración</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Gestionar agentes del equipo</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Eliminar cualquier registro</div>
+                <div style="display:flex;align-items:center;gap:8px;color:#15803d"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Acceso completo al sistema</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Modal: Nuevo / Editar Agente -->
+        <div class="modal-overlay" id="modalAgente" onclick="if(event.target===this)cerrarModalAgente()">
+          <div class="modal-box" style="max-width:460px">
+            <div class="modal-header">
+              <h3 id="modalAgenteTitle">Nuevo agente</h3>
+              <button class="modal-close" onclick="cerrarModalAgente()">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <form id="formAgente" onsubmit="guardarAgente(event)">
+              <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div class="form-group">
+                    <label>Nombre <span class="req">*</span></label>
+                    <input type="text" id="agNombre" placeholder="Nombre" required />
+                  </div>
+                  <div class="form-group">
+                    <label>Apellido <span class="req">*</span></label>
+                    <input type="text" id="agApellido" placeholder="Apellido" required />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Correo electrónico <span class="req">*</span></label>
+                  <input type="email" id="agCorreo" placeholder="agente@nhbienesraices.com" required />
+                </div>
+                <div class="form-group">
+                  <label>WhatsApp</label>
+                  <input type="text" id="agWhatsapp" placeholder="+52 55 0000 0000" />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div class="form-group">
+                    <label>Rol <span class="req">*</span></label>
+                    <select id="agRol" required>
+                      <option value="">Seleccionar…</option>
+                      <option value="agente">Agente</option>
+                      <option value="supervisor">Supervisor</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Estado</label>
+                    <select id="agEstado">
+                      <option value="activo">Activo</option>
+                      <option value="inactivo">Inactivo</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Zona / Área de trabajo</label>
+                  <input type="text" id="agZona" placeholder="Ej: CDMX Norte, Polanco, Zona Sur…" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="cerrarModalAgente()">Cancelar</button>
+                <button type="submit" class="btn-save" id="btnGuardarAgente">Guardar agente</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div><!-- /section-agentes -->
+
+      <!-- ── SECCIÓN: CONFIGURACIÓN ── -->
+      <div class="section" id="section-configuracion">
+
+        <!-- Stats -->
+        <div class="alertas-stats">
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#eff6ff;color:#1e40af">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statCfgTotal">0</div>
+              <div class="al-stat-lbl">Usuarios totales</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#dcfce7;color:#15803d">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statCfgActivos">0</div>
+              <div class="al-stat-lbl">Activos</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#fef3c7;color:#b45309">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statCfgAdmins">0</div>
+              <div class="al-stat-lbl">Administradores</div>
+            </div>
+          </div>
+          <div class="al-stat-card">
+            <div class="al-stat-icon" style="background:#f3e8ff;color:#7c3aed">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="al-stat-val" id="statCfgInactivos">0</div>
+              <div class="al-stat-lbl">Inactivos</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="clientes-toolbar">
+          <div class="clientes-filters">
+            <div class="search-wrap">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="searchUsuario" placeholder="Buscar por nombre o correo…" />
+            </div>
+            <select id="filtroRolCfg">
+              <option value="">Todos los roles</option>
+              <option value="admin">Administrador</option>
+              <option value="supervisor">Supervisor</option>
+              <option value="agente">Agente</option>
+            </select>
+            <select id="filtroEstadoCfg">
+              <option value="">Todos los estados</option>
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+          <button class="btn-add" onclick="abrirModalUsuario()">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nuevo acceso
+          </button>
+        </div>
+
+        <p class="clientes-count" id="usuarioCount"></p>
+
+        <!-- Tabla usuarios -->
+        <div class="table-wrap">
+          <table class="clientes-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Correo / Acceso</th>
+                <th>Rol</th>
+                <th>Último acceso</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usuariosTbody"></tbody>
+          </table>
+          <div class="table-empty" id="usuariosEmpty">
+            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#cbd5e1" stroke-width="1.5">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <p>No se encontraron usuarios</p>
+          </div>
+        </div>
+
+        <!-- Modal: Nuevo / Editar Usuario -->
+        <div class="modal-overlay" id="modalUsuario" onclick="if(event.target===this)cerrarModalUsuario()">
+          <div class="modal-box" style="max-width:500px">
+            <div class="modal-header">
+              <h3 id="modalUsuarioTitle">Nuevo acceso</h3>
+              <button class="modal-close" onclick="cerrarModalUsuario()">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <form id="formUsuario" onsubmit="guardarUsuario(event)">
+              <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div class="form-group">
+                    <label>Nombre <span class="req">*</span></label>
+                    <input type="text" id="usNombre" placeholder="Nombre" required />
+                  </div>
+                  <div class="form-group">
+                    <label>Apellido <span class="req">*</span></label>
+                    <input type="text" id="usApellido" placeholder="Apellido" required />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Correo electrónico (usado para iniciar sesión) <span class="req">*</span></label>
+                  <input type="email" id="usCorreo" placeholder="usuario@nhbienesraices.com" required />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div class="form-group">
+                    <label>Rol <span class="req">*</span></label>
+                    <select id="usRol" required onchange="actualizarDescRol()">
+                      <option value="">Seleccionar…</option>
+                      <option value="admin">Administrador</option>
+                      <option value="supervisor">Supervisor</option>
+                      <option value="agente">Agente</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Estado</label>
+                    <select id="usEstado">
+                      <option value="activo">Activo</option>
+                      <option value="inactivo">Inactivo</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Descripción del rol seleccionado -->
+                <div id="descRolBox" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.6"></div>
+                <!-- Contraseña -->
+                <div class="form-group" style="margin-top:4px">
+                  <label>Contraseña <span class="req">*</span></label>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <div class="input-wrap" style="flex:1;position:relative">
+                      <input type="text" id="usPassword" placeholder="Ingresa o genera una contraseña" required
+                        style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--text);font-family:monospace;outline:none" />
+                    </div>
+                    <button type="button" onclick="generarPassword()" title="Generar contraseña segura"
+                      style="padding:10px 14px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0">
+                      🔑 Generar
+                    </button>
+                    <button type="button" onclick="copiarPassword()" title="Copiar contraseña"
+                      style="padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--muted)" id="btnCopiarPw">
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <p style="font-size:11px;color:var(--muted);margin-top:5px">Mínimo 8 caracteres. Comparte esta contraseña con el usuario de forma segura.</p>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="cerrarModalUsuario()">Cancelar</button>
+                <button type="submit" class="btn-save">Guardar acceso</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Modal: Ver contraseña generada -->
+        <div class="modal-overlay" id="modalVerPw" onclick="if(event.target===this)cerrarVerPw()" style="z-index:1100">
+          <div class="modal-box" style="max-width:400px;text-align:center">
+            <div class="modal-header" style="justify-content:center;border:none;padding-bottom:0">
+              <h3>Contraseña generada</h3>
+            </div>
+            <div class="modal-body" style="padding-top:16px">
+              <div style="background:#f8fafc;border:2px dashed var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
+                <p id="pwMostrada" style="font-size:20px;font-weight:700;letter-spacing:2px;font-family:monospace;color:var(--text);word-break:break-all"></p>
+              </div>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Copia y comparte esta contraseña de forma segura con el usuario. No se podrá recuperar después.</p>
+              <div style="display:flex;gap:10px;justify-content:center">
+                <button onclick="copiarPwMostrada()" style="padding:9px 20px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px">
+                  📋 Copiar contraseña
+                </button>
+                <button onclick="cerrarVerPw()" style="padding:9px 20px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;color:var(--text)">
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /section-configuracion -->
+
+    </div>
+  </main>
+
+  <script>
+    // Fecha en topbar
+    const now = new Date();
+    document.getElementById('topbarDate').textContent =
+      now.toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // Navegación
+    const titles = {
+      inicio:        ['Inicio',         'Resumen general del sistema'],
+      seguimientos:  ['Seguimientos',   'Gestión de procesos de venta y arrendamiento'],
+      propiedades:   ['Propiedades',    'Gestión de inmuebles'],
+      clientes:      ['Clientes',       'Gestión de contactos y leads'],
+      alertas:       ['Alertas',        'Notificaciones y comunicación con clientes'],
+      agentes:       ['Agentes',        'Gestión del equipo de agentes inmobiliarios'],
+      configuracion: ['Configuración',  'Usuarios, roles y accesos al sistema'],
+    };
+
+    function navigate(section) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      document.getElementById('section-' + section).classList.add('active');
+      document.querySelector(`[data-section="${section}"]`).classList.add('active');
+
+      const [title, subtitle] = titles[section] || [section, ''];
+      document.getElementById('pageTitle').textContent    = title;
+      document.getElementById('pageSubtitle').textContent = subtitle;
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault();
+        navigate(item.dataset.section);
+      });
+    });
+
+    // ── Datos globales (deben declararse antes de cualquier render) ──
+    let clientes = [
+      { nombre: 'Carlos',  apellido: 'Mendoza',  correo: 'carlos.mendoza@gmail.com',  whatsapp: '+52 55 1234 5678', tipo: 'vendedor'     },
+      { nombre: 'Ana',     apellido: 'López',    correo: 'ana.lopez@gmail.com',        whatsapp: '+52 55 9876 4321', tipo: 'comprador'    },
+      { nombre: 'Roberto', apellido: 'Sánchez',  correo: 'roberto.sanchez@gmail.com',  whatsapp: '+52 55 5555 0011', tipo: 'arrendador'   },
+      { nombre: 'María',   apellido: 'García',   correo: 'maria.garcia@gmail.com',     whatsapp: '+52 55 3344 7788', tipo: 'arrendatario' },
+    ];
+
+    let propiedades = [
+      { nombre: 'Casa en Lomas de Chapultepec',    tipo: 'casa',          operacion: 'venta',   direccion: 'Av. Reforma 245, Lomas de Chapultepec, CDMX',  m2: '280', hab: '4', banos: '3', estac: '2', precio: '8500000', moneda: 'MXN', estado: 'disponible'    },
+      { nombre: 'Departamento en Polanco',         tipo: 'departamento',  operacion: 'alquiler',direccion: 'Av. Presidente Masaryk 123, Polanco, CDMX',     m2: '95',  hab: '2', banos: '2', estac: '1', precio: '28000',   moneda: 'MXN', estado: 'disponible'    },
+    ];
+    let editIndexP  = null;
+
+    const estadoClass = {
+      'disponible':     'estado-badge estado-disponible',
+      'vendida':        'estado-badge estado-vendida',
+      'alquilada':      'estado-badge estado-alquilada',
+      'en negociación': 'estado-badge estado-en-negociacion',
+    };
+
+    function fmtPrecio(p, moneda) {
+      const sym = { USD: '$', MXN: '$', VES: 'Bs.', EUR: '€' }[moneda] || '';
+      const prefix = moneda ? moneda + ' ' + sym : sym;
+      return prefix + ' ' + Number(p).toLocaleString('es-MX');
+    }
+
+    function renderPropiedades() {
+      const buscar = document.getElementById('searchPropiedad').value.toLowerCase();
+      const tipo   = document.getElementById('filtroTipoP').value;
+      const op     = document.getElementById('filtroOperacion').value;
+      const estado = document.getElementById('filtroEstado').value;
+      const tbody  = document.getElementById('propiedadesTbody');
+      const empty  = document.getElementById('tableEmptyP');
+      const count  = document.getElementById('propiedadesCount');
+
+      const filtrados = propiedades.filter(p => {
+        const txt = (p.nombre + ' ' + (p.direccion||'')).toLowerCase();
+        return (!buscar || txt.includes(buscar))
+          && (!tipo   || p.tipo === tipo)
+          && (!op     || p.operacion === op)
+          && (!estado || p.estado === estado);
+      });
+
+      count.textContent = filtrados.length === 1 ? '1 propiedad' : filtrados.length + ' propiedades';
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.add('show');
+        return;
+      }
+      empty.classList.remove('show');
+
+      tbody.innerHTML = filtrados.map(p => {
+        const idx = propiedades.indexOf(p);
+        return `
+        <tr>
+          <td>
+            <strong>${p.nombre}</strong>
+            ${p.direccion ? `<br><span style="font-size:12px;color:var(--muted)">${p.direccion}</span>` : ''}
+          </td>
+          <td style="text-transform:capitalize">${p.tipo}</td>
+          <td><span class="op-badge">${p.operacion}</span></td>
+          <td>${fmtPrecio(p.precio, p.moneda)}</td>
+          <td><span class="${estadoClass[p.estado] || 'estado-badge'}">${p.estado}</span></td>
+          <td style="display:flex;gap:4px">
+            <button class="btn-icon" title="Editar" onclick="editarPropiedad(${idx})">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="btn-icon del" title="Eliminar" onclick="eliminarPropiedad(${idx})">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/>
+                <path d="M9 6V4h6v2"/>
+              </svg>
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('statPropiedades').textContent = propiedades.length;
+    }
+
+    function abrirModalP(idx = null) {
+      editIndexP = idx;
+      document.getElementById('modalTitleP').textContent = idx === null ? 'Agregar propiedad' : 'Editar propiedad';
+      document.getElementById('propiedadForm').reset();
+      ['pNombre','pTipo','pOperacion','pPrecio','pEstado'].forEach(id =>
+        document.getElementById(id).classList.remove('error'));
+      ['perrNombre','perrTipo','perrOperacion','perrPrecio','perrEstado'].forEach(id =>
+        document.getElementById(id).classList.remove('show'));
+
+      if (idx !== null) {
+        const p = propiedades[idx];
+        document.getElementById('pNombre').value    = p.nombre;
+        document.getElementById('pTipo').value      = p.tipo;
+        document.getElementById('pOperacion').value = p.operacion;
+        document.getElementById('pDireccion').value = p.direccion || '';
+        document.getElementById('pM2').value        = p.m2 || '';
+        document.getElementById('pHab').value       = p.hab || '';
+        document.getElementById('pBanos').value     = p.banos || '';
+        document.getElementById('pEstac').value     = p.estac || '';
+        document.getElementById('pPrecio').value    = p.precio;
+        document.getElementById('pMoneda').value    = p.moneda;
+        document.getElementById('pEstado').value    = p.estado;
+      }
+      document.getElementById('modalOverlayP').classList.add('open');
+      document.getElementById('pNombre').focus();
+    }
+
+    function cerrarModalP(e) {
+      if (e && e.target !== document.getElementById('modalOverlayP')) return;
+      document.getElementById('modalOverlayP').classList.remove('open');
+      editIndexP = null;
+    }
+
+    document.getElementById('propiedadForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const nombre    = document.getElementById('pNombre').value.trim();
+      const tipo      = document.getElementById('pTipo').value;
+      const operacion = document.getElementById('pOperacion').value;
+      const precio    = document.getElementById('pPrecio').value;
+      const estado    = document.getElementById('pEstado').value;
+      let ok = true;
+
+      [['pNombre','perrNombre',nombre],['pTipo','perrTipo',tipo],
+       ['pOperacion','perrOperacion',operacion],['pPrecio','perrPrecio',precio],
+       ['pEstado','perrEstado',estado]].forEach(([fid,eid,val]) => {
+        if (!val) {
+          document.getElementById(fid).classList.add('error');
+          document.getElementById(eid).classList.add('show');
+          ok = false;
+        }
+      });
+      if (!ok) return;
+
+      const prop = {
+        nombre, tipo, operacion, estado,
+        direccion: document.getElementById('pDireccion').value.trim(),
+        m2:    document.getElementById('pM2').value,
+        hab:   document.getElementById('pHab').value,
+        banos: document.getElementById('pBanos').value,
+        estac: document.getElementById('pEstac').value,
+        precio, moneda: document.getElementById('pMoneda').value,
+      };
+
+      if (editIndexP === null) propiedades.push(prop);
+      else propiedades[editIndexP] = prop;
+
+      document.getElementById('modalOverlayP').classList.remove('open');
+      editIndexP = null;
+      renderPropiedades();
+    });
+
+    function editarPropiedad(idx)   { abrirModalP(idx); }
+    function eliminarPropiedad(idx) {
+      if (confirm('¿Eliminar esta propiedad?')) {
+        propiedades.splice(idx, 1);
+        renderPropiedades();
+      }
+    }
+
+    document.getElementById('searchPropiedad').addEventListener('input', renderPropiedades);
+    document.getElementById('filtroTipoP').addEventListener('change', renderPropiedades);
+    document.getElementById('filtroOperacion').addEventListener('change', renderPropiedades);
+    document.getElementById('filtroEstado').addEventListener('change', renderPropiedades);
+
+    renderPropiedades();
+
+    // ── Seguimientos ──
+    const PROCESOS = {
+      venta: [
+        { etapa: 'Etapa 1 — Diagnóstico y Preparación', pasos: ['Entrevista Inicial','Revisión Legal y Fiscal','Valoración Comercial','Firma de Contrato de Prestación de Servicios'] },
+        { etapa: 'Etapa 2 — Comercialización', pasos: ['Preparación del Inmueble','Producción de Material Comercial','Plan de Marketing','Colocación de Rótulo y Publicación'] },
+        { etapa: 'Etapa 3 — Prospección y Negociación', pasos: ['Atención de Prospectos','Calificación de Prospectos','Visitas al Inmueble','Recepción de Oferta','Negociación','Aceptación de Oferta','Elaboración de Contrato Promesa'] },
+        { etapa: 'Etapa 4 — Cierre de Operación', pasos: ['Integración de Expediente','Coordinación Notarial','Firma de Escrituras','Entrega del Inmueble'] },
+        { etapa: 'Etapa 5 — Postventa', pasos: ['Seguimiento Postventa','Programa de Referidos','Encuesta de Satisfacción'] },
+      ],
+      arrendamiento: [
+        { etapa: 'Etapa 1 — Preparación del Inmueble', pasos: ['Diagnóstico Inicial','Revisión Legal del Inmueble','Determinación de Valor de Renta','Firma de Contrato de Servicios'] },
+        { etapa: 'Etapa 2 — Comercialización', pasos: ['Preparación del Inmueble','Producción de Material Comercial','Publicación en Medios','Promoción y Difusión'] },
+        { etapa: 'Etapa 3 — Filtro de Prospectos', pasos: ['Atención de Prospectos','Visitas al Inmueble','Recepción de Solicitudes','Investigación del Arrendatario','Presentación de Expediente al Propietario','Autorización del Prospecto'] },
+        { etapa: 'Etapa 4 — Formalización', pasos: ['Elaboración de Contrato','Contratación de Póliza Jurídica','Firma de Contrato','Cobro de Depósitos y Rentas Iniciales','Inventario y Evidencia Fotográfica','Entrega del Inmueble'] },
+        { etapa: 'Etapa 5 — Seguimiento', pasos: ['Seguimiento Inicial','Administración del Arrendamiento (Opcional)','Cierre del Contrato y Entrega Final','Servicio Post Arrendamiento'] },
+      ],
+    };
+
+    let seguimientos = [
+      // ── 1. VENTA en progreso — Carlos Mendoza (vendedor) + Casa Lomas ──
+      {
+        clienteIdx: 0, propiedadIdx: 0, tipo: 'venta',
+        notas: 'Cliente interesado en venta rápida. Tiene escrituras en orden. Se están coordinando visitas.',
+        fecha: '09/06/2026',
+        checks: {
+          '0-0': true, '0-1': true, '0-2': true, '0-3': true,   // Etapa 1 completa
+          '1-0': true, '1-1': true, '1-2': false, '1-3': false, // Etapa 2 parcial
+          '2-0': false,'2-1': false,'2-2': false,'2-3': false,'2-4': false,'2-5': false,'2-6': false,
+          '3-0': false,'3-1': false,'3-2': false,'3-3': false,
+          '4-0': false,'4-1': false,'4-2': false,
+        }
+      },
+      // ── 2. VENTA completada — Ana López (compradora) + Casa Lomas ──
+      {
+        clienteIdx: 1, propiedadIdx: 0, tipo: 'venta',
+        notas: 'Operación de venta finalizada exitosamente. Escrituras firmadas y entregadas.',
+        fecha: '02/05/2026',
+        checks: {
+          '0-0': true, '0-1': true, '0-2': true, '0-3': true,
+          '1-0': true, '1-1': true, '1-2': true, '1-3': true,
+          '2-0': true, '2-1': true, '2-2': true, '2-3': true, '2-4': true, '2-5': true, '2-6': true,
+          '3-0': true, '3-1': true, '3-2': true, '3-3': true,
+          '4-0': true, '4-1': true, '4-2': true,
+        }
+      },
+      // ── 3. ARRENDAMIENTO en progreso — Roberto Sánchez (arrendador) + Depto Polanco ──
+      {
+        clienteIdx: 2, propiedadIdx: 1, tipo: 'arrendamiento',
+        notas: 'Inmueble preparado y publicado. En proceso de filtro de prospectos.',
+        fecha: '05/06/2026',
+        checks: {
+          '0-0': true, '0-1': true, '0-2': true, '0-3': true,   // Etapa 1 completa
+          '1-0': true, '1-1': true, '1-2': true, '1-3': true,   // Etapa 2 completa
+          '2-0': true, '2-1': true, '2-2': false,'2-3': false,'2-4': false,'2-5': false, // Etapa 3 parcial
+          '3-0': false,'3-1': false,'3-2': false,'3-3': false,'3-4': false,'3-5': false,
+          '4-0': false,'4-1': false,'4-2': false,'4-3': false,
+        }
+      },
+      // ── 4. ARRENDAMIENTO completado — María García (arrendataria) + Depto Polanco ──
+      {
+        clienteIdx: 3, propiedadIdx: 1, tipo: 'arrendamiento',
+        notas: 'Contrato de arrendamiento firmado. Depósito y primera renta cobrados. Inmueble entregado.',
+        fecha: '15/04/2026',
+        checks: {
+          '0-0': true, '0-1': true, '0-2': true, '0-3': true,
+          '1-0': true, '1-1': true, '1-2': true, '1-3': true,
+          '2-0': true, '2-1': true, '2-2': true, '2-3': true, '2-4': true, '2-5': true,
+          '3-0': true, '3-1': true, '3-2': true, '3-3': true, '3-4': true, '3-5': true,
+          '4-0': true, '4-1': true, '4-2': true, '4-3': true,
+        }
+      },
+    ];
+    let panelSegIdx  = null;
+
+    function totalPasos(tipo) {
+      return PROCESOS[tipo].reduce((s, e) => s + e.pasos.length, 0);
+    }
+    function pasosCompletados(seg) {
+      return Object.values(seg.checks).filter(Boolean).length;
+    }
+    function etapaActual(seg) {
+      const proceso = PROCESOS[seg.tipo];
+      let acum = 0;
+      for (let i = 0; i < proceso.length; i++) {
+        const completados = proceso[i].pasos.filter((_, pi) => seg.checks[`${i}-${pi}`]).length;
+        if (completados < proceso[i].pasos.length) return proceso[i].etapa.split(' — ')[1] || proceso[i].etapa;
+        acum += proceso[i].pasos.length;
+      }
+      return 'Completado ✓';
+    }
+
+    let filtroEstadoSeg = 'todos';
+    function actualizarTabsSeg(btn) {
+      document.querySelectorAll('#segTabTodos,#segTabProceso,#segTabCerrados').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function renderSeguimientos() {
+      const buscar = document.getElementById('searchSeg').value.toLowerCase();
+      const tipo   = document.getElementById('filtroTipoSeg').value;
+      const grid   = document.getElementById('segGrid');
+      const empty  = document.getElementById('segEmpty');
+      const count  = document.getElementById('segCount');
+
+      const filtrados = seguimientos.filter(s => {
+        const c   = clientes[s.clienteIdx];
+        const p   = propiedades[s.propiedadIdx];
+        const pct = Math.round((pasosCompletados(s) / totalPasos(s.tipo)) * 100);
+        const txt = ((c ? c.nombre+' '+c.apellido : '') + ' ' + (p ? p.nombre : '')).toLowerCase();
+        const matchTexto = !buscar || txt.includes(buscar);
+        const matchTipo  = !tipo   || s.tipo === tipo;
+        const matchEstado = filtroEstadoSeg === 'todos'
+          || (filtroEstadoSeg === 'cerrados' && pct === 100)
+          || (filtroEstadoSeg === 'proceso'  && pct < 100);
+        return matchTexto && matchTipo && matchEstado;
+      });
+
+      count.textContent = filtrados.length === 1 ? '1 seguimiento' : filtrados.length + ' seguimientos';
+
+      if (filtrados.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.add('show');
+        return;
+      }
+      empty.classList.remove('show');
+
+      grid.innerHTML = filtrados.map(s => {
+        const idx    = seguimientos.indexOf(s);
+        const c      = clientes[s.clienteIdx];
+        const p      = propiedades[s.propiedadIdx];
+        const total  = totalPasos(s.tipo);
+        const done   = pasosCompletados(s);
+        const pct    = Math.round((done / total) * 100);
+        const etapa  = etapaActual(s);
+        const closed = pct === 100;
+        return `
+        <div class="seg-card${closed ? ' cerrado' : ''}" onclick="abrirPanel(${idx})">
+          <div class="seg-card-header">
+            <div>
+              <h4>${c ? c.nombre+' '+c.apellido : 'Cliente eliminado'}</h4>
+              <p>${p ? p.nombre : 'Propiedad eliminada'}</p>
+            </div>
+            ${closed
+              ? `<span class="seg-cerrado-badge"><svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>Cerrado</span>`
+              : `<span class="seg-tipo-pill seg-tipo-${s.tipo}">${s.tipo}</span>`
+            }
+          </div>
+          <div class="seg-progress-wrap">
+            <div class="seg-progress-label">
+              <span>${done} de ${total} pasos</span>
+              <span style="font-weight:700;color:${closed?'#15803d':'inherit'}">${pct}%</span>
+            </div>
+            <div class="seg-progress-bar">
+              <div class="seg-progress-fill" style="width:${pct}%;${closed?'background:#22c55e':''}"></div>
+            </div>
+          </div>
+          <div class="seg-etapa-current">
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="${closed?'#15803d':'currentColor'}" stroke-width="2">
+              ${closed
+                ? '<polyline points="20 6 9 17 4 12"/>'
+                : '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'
+              }
+            </svg>
+            <span style="${closed?'color:#15803d;font-weight:700':''}">${etapa}</span>
+          </div>
+          <div class="seg-card-actions">
+            <button class="btn-ver" style="${closed?'color:#15803d':''}" onclick="event.stopPropagation();abrirPanel(${idx})">Ver detalle →</button>
+            <button class="btn-icon del" title="Eliminar" onclick="event.stopPropagation();eliminarSeg(${idx})">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+              </svg>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function abrirModalSeg() {
+      // Poblar selects
+      const selC = document.getElementById('segCliente');
+      const selP = document.getElementById('segPropiedad');
+      selC.innerHTML = '<option value="">Seleccionar cliente…</option>';
+      selP.innerHTML = '<option value="">Seleccionar propiedad…</option>';
+      clientes.forEach((c, i)    => selC.innerHTML += `<option value="${i}">${c.nombre} ${c.apellido}</option>`);
+      propiedades.forEach((p, i) => selP.innerHTML += `<option value="${i}">${p.nombre} (${p.operacion})</option>`);
+      document.getElementById('segTipoWrap').style.display = 'none';
+      document.getElementById('segNotas').value = '';
+      ['segCliente','segPropiedad'].forEach(id => document.getElementById(id).classList.remove('error'));
+      ['errSegCliente','errSegPropiedad'].forEach(id => document.getElementById(id).classList.remove('show'));
+      document.getElementById('modalOverlaySeg').classList.add('open');
+    }
+
+    function cerrarModalSeg(e) {
+      if (e && e.target !== document.getElementById('modalOverlaySeg')) return;
+      document.getElementById('modalOverlaySeg').classList.remove('open');
+    }
+
+    // Detectar tipo al cambiar propiedad
+    document.getElementById('segPropiedad').addEventListener('change', function() {
+      const idx = this.value;
+      const wrap = document.getElementById('segTipoWrap');
+      const det  = document.getElementById('segTipoDetected');
+      if (idx === '') { wrap.style.display = 'none'; return; }
+      const p = propiedades[parseInt(idx)];
+      const tipo = p.operacion === 'alquiler' ? 'arrendamiento' : 'venta';
+      det.className = 'seg-tipo-detected' + (tipo === 'arrendamiento' ? ' arrend' : '');
+      det.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Proceso de ${tipo === 'venta' ? 'Venta Inmobiliaria' : 'Arrendamiento'} — 5 etapas`;
+      wrap.style.display = 'block';
+    });
+
+    document.getElementById('segForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const ci = document.getElementById('segCliente').value;
+      const pi = document.getElementById('segPropiedad').value;
+      let ok = true;
+      if (ci === '') { document.getElementById('segCliente').classList.add('error'); document.getElementById('errSegCliente').classList.add('show'); ok = false; }
+      if (pi === '') { document.getElementById('segPropiedad').classList.add('error'); document.getElementById('errSegPropiedad').classList.add('show'); ok = false; }
+      if (!ok) return;
+      const p    = propiedades[parseInt(pi)];
+      const tipo = p.operacion === 'alquiler' ? 'arrendamiento' : 'venta';
+      seguimientos.push({
+        clienteIdx: parseInt(ci),
+        propiedadIdx: parseInt(pi),
+        tipo,
+        notas: document.getElementById('segNotas').value.trim(),
+        checks: {},
+        fecha: new Date().toLocaleDateString('es-MX'),
+      });
+      document.getElementById('modalOverlaySeg').classList.remove('open');
+      renderSeguimientos();
+    });
+
+    function eliminarSeg(idx) {
+      if (confirm('¿Eliminar este seguimiento?')) {
+        seguimientos.splice(idx, 1);
+        renderSeguimientos();
+      }
+    }
+
+    function abrirPanel(idx) {
+      panelSegIdx = idx;
+      const s = seguimientos[idx];
+      const c = clientes[s.clienteIdx];
+      const p = propiedades[s.propiedadIdx];
+      document.getElementById('panelTitle').textContent = c ? c.nombre+' '+c.apellido : 'Seguimiento';
+      document.getElementById('panelSub').textContent   = p ? p.nombre : '';
+      renderPanel();
+      document.getElementById('segPanelOverlay').classList.add('open');
+    }
+
+    function renderPanel() {
+      const s       = seguimientos[panelSegIdx];
+      const proceso = PROCESOS[s.tipo];
+      const body    = document.getElementById('segPanelBody');
+      body.innerHTML = proceso.map((etapa, ei) => `
+        <div class="etapa-block">
+          <div class="etapa-title">${etapa.etapa}</div>
+          ${etapa.pasos.map((paso, pi) => {
+            const key  = `${ei}-${pi}`;
+            const done = !!s.checks[key];
+            return `
+            <div class="paso-item" onclick="togglePaso(${panelSegIdx},'${key}')">
+              <div class="paso-check ${done?'done':''}">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <span class="paso-label ${done?'done':''}">Paso ${pi+1}. ${paso}</span>
+              <span class="paso-num">${ei+1}.${pi+1}</span>
+            </div>`;
+          }).join('')}
+        </div>`).join('');
+    }
+
+    function actualizarBadgeAlertas() {
+      const pendientes = alertas.filter(a => a.estado === 'pendiente').length;
+      const badge = document.getElementById('navAlertaBadge');
+      if (pendientes > 0) {
+        badge.textContent = pendientes;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function togglePaso(idx, key) {
+      const antes = seguimientos[idx].checks[key];
+      seguimientos[idx].checks[key] = !antes;
+
+      // Si se está marcando como completado (no desmarcando), generar alerta automática
+      if (!antes) {
+        const seg  = seguimientos[idx];
+        const [ei, pi] = key.split('-').map(Number);
+        const proceso  = PROCESOS[seg.tipo];
+        const etapa    = proceso[ei] ? proceso[ei].etapa : '';
+        const paso     = proceso[ei] ? proceso[ei].pasos[pi] : '';
+        const c        = clientes[seg.clienteIdx];
+        const p        = propiedades[seg.propiedadIdx];
+        const hoy      = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'});
+        const nombre   = c ? c.nombre : 'Cliente';
+        const tipoLabel = seg.tipo === 'venta' ? 'venta' : 'arrendamiento';
+
+        // Detectar si se completó toda una etapa
+        const etapaCompleta = proceso[ei] && proceso[ei].pasos.every((_,pi2) => seg.checks[`${ei}-${pi2}`] || pi2 === pi);
+
+        const asunto  = etapaCompleta
+          ? `Etapa completada: ${etapa.split(' — ')[1] || etapa}`
+          : `Avance en tu proceso: ${paso}`;
+        const mensaje = etapaCompleta
+          ? `Hola ${nombre}, la etapa "${etapa.split(' — ')[1] || etapa}" de tu proceso de ${tipoLabel} ha sido completada. Continuamos con la siguiente fase. — NH Bienes Raíces`
+          : `Hola ${nombre}, el paso "${paso}" de tu proceso de ${tipoLabel}${p ? ' ('+p.nombre+')' : ''} ha sido marcado como completado. — NH Bienes Raíces`;
+
+        const canalPref = c && c.whatsapp ? 'whatsapp' : 'email';
+
+        alertas.unshift({
+          clienteIdx: seg.clienteIdx,
+          canal:      canalPref,
+          asunto,
+          mensaje,
+          estado:     'pendiente',
+          fecha:      hoy,
+          auto:       true,
+        });
+        actualizarBadgeAlertas();
+        if (typeof renderAlertas === 'function') renderAlertas();
+      }
+
+      renderPanel();
+      renderSeguimientos();
+    }
+
+    function cerrarPanel(e) {
+      if (e && e.target !== document.getElementById('segPanelOverlay')) return;
+      document.getElementById('segPanelOverlay').classList.remove('open');
+      panelSegIdx = null;
+    }
+
+    document.getElementById('searchSeg').addEventListener('input', renderSeguimientos);
+    document.getElementById('filtroTipoSeg').addEventListener('change', renderSeguimientos);
+
+    renderSeguimientos();
+
+    // ── Clientes ──
+    let editIndex = null;
+
+    const tipoBadge = {
+      vendedor:     'tipo-badge tipo-vendedor',
+      arrendador:   'tipo-badge tipo-arrendador',
+      arrendatario: 'tipo-badge tipo-arrendatario',
+      comprador:    'tipo-badge tipo-comprador',
+    };
+
+    function renderClientes() {
+      const buscar = document.getElementById('searchCliente').value.toLowerCase();
+      const tipo   = document.getElementById('filtroTipo').value;
+      const tbody  = document.getElementById('clientesTbody');
+      const empty  = document.getElementById('tableEmpty');
+      const count  = document.getElementById('clientesCount');
+
+      const filtrados = clientes.filter(c => {
+        const nombre = (c.nombre + ' ' + c.apellido).toLowerCase();
+        const correo = c.correo.toLowerCase();
+        const matchBuscar = !buscar || nombre.includes(buscar) || correo.includes(buscar);
+        const matchTipo   = !tipo   || c.tipo === tipo;
+        return matchBuscar && matchTipo;
+      });
+
+      count.textContent = filtrados.length === 1
+        ? '1 cliente'
+        : filtrados.length + ' clientes';
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.add('show');
+        return;
+      }
+      empty.classList.remove('show');
+
+      tbody.innerHTML = filtrados.map((c, i) => {
+        const idx = clientes.indexOf(c);
+        return `
+        <tr>
+          <td><strong>${c.nombre} ${c.apellido}</strong></td>
+          <td>${c.correo}</td>
+          <td>${c.whatsapp || '—'}</td>
+          <td><span class="${tipoBadge[c.tipo] || 'tipo-badge'}">${c.tipo}</span></td>
+          <td style="display:flex;gap:4px">
+            <button class="btn-icon" title="Editar" onclick="editarCliente(${idx})">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="btn-icon del" title="Eliminar" onclick="eliminarCliente(${idx})">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/>
+                <path d="M9 6V4h6v2"/>
+              </svg>
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('statClientes').textContent = clientes.length;
+    }
+
+    function abrirModal(idx = null) {
+      editIndex = idx;
+      const overlay = document.getElementById('modalOverlay');
+      const form    = document.getElementById('clienteForm');
+      document.getElementById('modalTitle').textContent = idx === null ? 'Agregar cliente' : 'Editar cliente';
+      form.reset();
+      limpiarErroresModal();
+
+      if (idx !== null) {
+        const c = clientes[idx];
+        document.getElementById('fNombre').value   = c.nombre;
+        document.getElementById('fApellido').value = c.apellido;
+        document.getElementById('fCorreo').value   = c.correo;
+        document.getElementById('fWhatsapp').value = c.whatsapp || '';
+        document.getElementById('fTipo').value     = c.tipo;
+      }
+      overlay.classList.add('open');
+      document.getElementById('fNombre').focus();
+    }
+
+    function cerrarModal(e) {
+      if (e && e.target !== document.getElementById('modalOverlay')) return;
+      document.getElementById('modalOverlay').classList.remove('open');
+      editIndex = null;
+    }
+
+    function limpiarErroresModal() {
+      ['fNombre','fApellido','fCorreo','fTipo'].forEach(id => {
+        document.getElementById(id).classList.remove('error');
+      });
+      ['errNombre','errApellido','errCorreo','errTipo'].forEach(id => {
+        document.getElementById(id).classList.remove('show');
+      });
+    }
+
+    document.getElementById('clienteForm').addEventListener('submit', e => {
+      e.preventDefault();
+      limpiarErroresModal();
+      const nombre   = document.getElementById('fNombre').value.trim();
+      const apellido = document.getElementById('fApellido').value.trim();
+      const correo   = document.getElementById('fCorreo').value.trim();
+      const whatsapp = document.getElementById('fWhatsapp').value.trim();
+      const tipo     = document.getElementById('fTipo').value;
+      let ok = true;
+
+      if (!nombre)  { document.getElementById('fNombre').classList.add('error');   document.getElementById('errNombre').classList.add('show');   ok = false; }
+      if (!apellido){ document.getElementById('fApellido').classList.add('error');  document.getElementById('errApellido').classList.add('show');  ok = false; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+        document.getElementById('fCorreo').classList.add('error');
+        document.getElementById('errCorreo').classList.add('show');
+        ok = false;
+      }
+      if (!tipo)    { document.getElementById('fTipo').classList.add('error');      document.getElementById('errTipo').classList.add('show');      ok = false; }
+      if (!ok) return;
+
+      const cliente = { nombre, apellido, correo, whatsapp, tipo };
+      if (editIndex === null) {
+        clientes.push(cliente);
+      } else {
+        clientes[editIndex] = cliente;
+      }
+      document.getElementById('modalOverlay').classList.remove('open');
+      editIndex = null;
+      renderClientes();
+    });
+
+    function editarCliente(idx)   { abrirModal(idx); }
+    function eliminarCliente(idx) {
+      if (confirm('¿Eliminar este cliente?')) {
+        clientes.splice(idx, 1);
+        renderClientes();
+      }
+    }
+
+    document.getElementById('searchCliente').addEventListener('input', renderClientes);
+    document.getElementById('filtroTipo').addEventListener('change', renderClientes);
+
+    // ── Alertas & Notificaciones ──
+    let alertas = [
+      {
+        clienteIdx: 1,   // Ana López (compradora)
+        canal: 'email',
+        asunto: '¡Tu proceso de venta ha concluido exitosamente!',
+        mensaje: 'Estimada Ana, nos complace informarte que tu proceso de venta ha sido completado en su totalidad. Las escrituras han sido firmadas y entregadas. ¡Felicidades por tu nueva adquisición!',
+        estado: 'enviado',
+        fecha: '02/05/2026',
+      },
+      {
+        clienteIdx: 3,   // María García (arrendataria)
+        canal: 'sms',
+        asunto: 'Contrato de arrendamiento formalizado',
+        mensaje: 'Hola María, tu contrato de arrendamiento ha sido firmado exitosamente. Depósito y primera renta recibidos. ¡Bienvenida a tu nuevo hogar! — NH Bienes Raíces',
+        estado: 'enviado',
+        fecha: '15/04/2026',
+      },
+      {
+        clienteIdx: 0,   // Carlos Mendoza (vendedor)
+        canal: 'email',
+        asunto: 'Avance: Etapa 1 completada — Diagnóstico y Preparación',
+        mensaje: 'Estimado Carlos, te informamos que la Etapa 1 "Diagnóstico y Preparación" de tu proceso de venta ha sido completada. Comenzamos con la Etapa 2: Comercialización. Te mantendremos al tanto.',
+        estado: 'enviado',
+        fecha: '01/06/2026',
+      },
+      {
+        clienteIdx: 2,   // Roberto Sánchez (arrendador)
+        canal: 'whatsapp',
+        asunto: 'Tu inmueble ya está publicado y recibiendo consultas',
+        mensaje: 'Hola Roberto, tu departamento en Polanco ya está publicado en los principales portales inmobiliarios. Ya hemos recibido las primeras consultas de prospectos. Te avisamos en cuanto tengamos visitas agendadas.',
+        estado: 'pendiente',
+        fecha: '06/06/2026',
+      },
+      {
+        clienteIdx: 0,   // Carlos Mendoza (vendedor)
+        canal: 'sms',
+        asunto: 'Recordatorio: visita programada hoy',
+        mensaje: 'Carlos, tienes una visita al inmueble programada para el día de hoy. El prospecto llegará a las 4:00 pm. Te confirmaremos los resultados al terminar. — NH Bienes Raíces',
+        estado: 'pendiente',
+        fecha: '09/06/2026',
+      },
+    ];
+
+    const canalIcono = {
+      email: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>`,
+      sms:   `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 13 19.79 19.79 0 0 1 1 4.18 2 2 0 0 1 2.18 2h3a2 2 0 0 1 2 1.72c.127.96.36 1.902.7 2.81a2 2 0 0 1-.45 2.11L6.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.908.34 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>`,
+      whatsapp: `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.122 1.526 5.854L.057 23.885l6.159-1.611A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.882 0-3.64-.523-5.138-1.433l-.368-.22-3.814.999 1.022-3.72-.24-.383A9.97 9.97 0 0 1 2 12C2 6.486 6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></svg>`,
+    };
+
+    function renderAlertas() {
+      const buscar = document.getElementById('searchAlerta').value.toLowerCase();
+      const canal  = document.getElementById('filtroCanal').value;
+      const estado = document.getElementById('filtroEstadoAl').value;
+      const list   = document.getElementById('alertaList');
+      const empty  = document.getElementById('alertaEmpty');
+      const count  = document.getElementById('alertaCount');
+
+      const filtradas = alertas.filter(a => {
+        const c = clientes[a.clienteIdx];
+        const txt = ((c ? c.nombre+' '+c.apellido : '') + ' ' + a.asunto + ' ' + a.mensaje).toLowerCase();
+        return (!buscar || txt.includes(buscar))
+          && (!canal  || a.canal  === canal)
+          && (!estado || a.estado === estado);
+      });
+
+      count.textContent = filtradas.length === 1 ? '1 alerta' : filtradas.length + ' alertas';
+
+      // stats
+      actualizarBadgeAlertas();
+      document.getElementById('statAlTotal').textContent     = alertas.length;
+      document.getElementById('statAlEnviadas').textContent  = alertas.filter(a=>a.estado==='enviado').length;
+      document.getElementById('statAlPendientes').textContent= alertas.filter(a=>a.estado==='pendiente').length;
+      document.getElementById('statAlEmail').textContent     = alertas.filter(a=>a.canal==='email').length;
+      document.getElementById('statAlSms').textContent       = alertas.filter(a=>a.canal==='sms'||a.canal==='whatsapp').length;
+
+      if (filtradas.length === 0) {
+        list.innerHTML = '';
+        empty.classList.add('show');
+        return;
+      }
+      empty.classList.remove('show');
+
+      list.innerHTML = filtradas.map(a => {
+        const idx = alertas.indexOf(a);
+        const c   = clientes[a.clienteIdx];
+        const nombre = c ? c.nombre + ' ' + c.apellido : 'Cliente eliminado';
+        const icono  = canalIcono[a.canal] || '';
+        const estadoClass = { enviado:'est-enviado', pendiente:'est-pendiente', fallido:'est-fallido' }[a.estado];
+        const estadoLabel = { enviado:'Enviado', pendiente:'Pendiente', fallido:'Fallido' }[a.estado];
+        const canalClass  = { email:'canal-email', sms:'canal-sms', whatsapp:'canal-whatsapp' }[a.canal];
+        const canalLabel  = { email:'Email', sms:'SMS', whatsapp:'WhatsApp' }[a.canal];
+        const iconClass   = { email:'al-canal-email', sms:'al-canal-sms', whatsapp:'al-canal-whatsapp' }[a.canal];
+        return `
+        <div class="alerta-card">
+          <div class="al-canal-icon ${iconClass}">${icono}</div>
+          <div class="al-body">
+            <div class="al-top">
+              <span class="al-cliente">${nombre}</span>
+              <span class="canal-badge ${canalClass}">${canalLabel}</span>
+            </div>
+            <div class="al-asunto">${a.asunto}</div>
+            <div class="al-msg">${a.mensaje}</div>
+            <div class="al-meta">
+              <span class="estado-alerta ${estadoClass}">${estadoLabel}</span>
+              <span class="al-fecha">${a.fecha}</span>
+            </div>
+          </div>
+          <button class="btn-icon del" title="Eliminar" onclick="eliminarAlerta(${idx})" style="margin-top:2px;flex-shrink:0">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+            </svg>
+          </button>
+        </div>`;
+      }).join('');
+    }
+
+    function switchTabAlertas(tab) {
+      document.getElementById('tabPanelHistorial').style.display = tab === 'historial' ? '' : 'none';
+      document.getElementById('tabPanelConfig').style.display    = tab === 'config'    ? '' : 'none';
+      document.getElementById('tabBtnHistorial').classList.toggle('active', tab === 'historial');
+      document.getElementById('tabBtnConfig').classList.toggle('active', tab === 'config');
+    }
+
+    function abrirModalAlerta() {
+      // Poblar select de clientes
+      const sel = document.getElementById('alCliente');
+      sel.innerHTML = '<option value="">Seleccionar cliente…</option>' +
+        clientes.map((c,i) => `<option value="${i}">${c.nombre} ${c.apellido} (${c.tipo})</option>`).join('');
+      document.getElementById('formAlerta').reset();
+      document.getElementById('modalAlerta').classList.add('open');
+    }
+    function cerrarModalAlerta() {
+      document.getElementById('modalAlerta').classList.remove('open');
+    }
+    document.getElementById('formAlerta').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const nueva = {
+        clienteIdx: parseInt(document.getElementById('alCliente').value),
+        canal:      document.getElementById('alCanal').value,
+        asunto:     document.getElementById('alAsunto').value.trim(),
+        mensaje:    document.getElementById('alMensaje').value.trim(),
+        estado:     document.getElementById('alEstado').value,
+        fecha:      new Date().toLocaleDateString('es-MX', {day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'/'),
+      };
+      alertas.unshift(nueva);
+      cerrarModalAlerta();
+      renderAlertas();
+    });
+    function eliminarAlerta(idx) {
+      if (confirm('¿Eliminar esta alerta?')) {
+        alertas.splice(idx, 1);
+        renderAlertas();
+      }
+    }
+
+    document.getElementById('searchAlerta').addEventListener('input', renderAlertas);
+    document.getElementById('filtroCanal').addEventListener('change', renderAlertas);
+    document.getElementById('filtroEstadoAl').addEventListener('change', renderAlertas);
+
+    // ── Agentes ──
+    let agentes = [
+      { nombre: 'Sofía',   apellido: 'Ramírez',  correo: 'sofia.ramirez@nhbienesraices.com',   whatsapp: '+52 55 2211 3344', rol: 'supervisor', estado: 'activo',   zona: 'CDMX Norte',  seguimientosIds: [0, 1] },
+      { nombre: 'Diego',   apellido: 'Torres',   correo: 'diego.torres@nhbienesraices.com',    whatsapp: '+52 55 4455 6677', rol: 'agente',     estado: 'activo',   zona: 'Polanco',     seguimientosIds: [2] },
+      { nombre: 'Valeria', apellido: 'Castro',   correo: 'valeria.castro@nhbienesraices.com',  whatsapp: '+52 55 8899 0011', rol: 'agente',     estado: 'activo',   zona: 'Zona Sur',    seguimientosIds: [3] },
+      { nombre: 'Marco',   apellido: 'Olvera',   correo: 'marco.olvera@nhbienesraices.com',    whatsapp: '+52 55 1122 4455', rol: 'agente',     estado: 'inactivo', zona: 'CDMX Oriente',seguimientosIds: [] },
+    ];
+    let editIndexAg = null;
+
+    const rolBadgeAg = {
+      agente:     'background:#eff6ff;color:#1e40af',
+      supervisor: 'background:#f3e8ff;color:#7c3aed',
+    };
+    const estadoBadgeAg = {
+      activo:   'background:#dcfce7;color:#15803d',
+      inactivo: 'background:#f1f5f9;color:#64748b',
+    };
+
+    function renderAgentes() {
+      const buscar = document.getElementById('searchAgente').value.toLowerCase();
+      const rol    = document.getElementById('filtroRolAg').value;
+      const estado = document.getElementById('filtroEstadoAg').value;
+      const tbody  = document.getElementById('agentesTbody');
+      const empty  = document.getElementById('agentesEmpty');
+      const count  = document.getElementById('agenteCount');
+
+      const filtrados = agentes.filter(a => {
+        const txt = (a.nombre+' '+a.apellido+' '+a.correo).toLowerCase();
+        return (!buscar || txt.includes(buscar))
+          && (!rol    || a.rol    === rol)
+          && (!estado || a.estado === estado);
+      });
+
+      // stats
+      document.getElementById('statAgTotal').textContent        = agentes.length;
+      document.getElementById('statAgActivos').textContent      = agentes.filter(a=>a.estado==='activo').length;
+      document.getElementById('statAgSeguimientos').textContent = agentes.reduce((s,a)=>s+a.seguimientosIds.length,0);
+      document.getElementById('statAgSupervisores').textContent = agentes.filter(a=>a.rol==='supervisor').length;
+
+      count.textContent = filtrados.length === 1 ? '1 agente' : filtrados.length + ' agentes';
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.add('show');
+        return;
+      }
+      empty.classList.remove('show');
+
+      tbody.innerHTML = filtrados.map(a => {
+        const idx = agentes.indexOf(a);
+        const iniciales = (a.nombre[0]+(a.apellido[0]||'')).toUpperCase();
+        const avatarColor = ['#1e40af','#7c3aed','#0f766e','#b45309'][idx % 4];
+        return `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:50%;background:${avatarColor};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${iniciales}</div>
+              <div>
+                <strong>${a.nombre} ${a.apellido}</strong>
+                ${a.zona ? `<br><span style="font-size:11px;color:var(--muted)">${a.zona}</span>` : ''}
+              </div>
+            </div>
+          </td>
+          <td style="font-size:13px">${a.correo}</td>
+          <td style="font-size:13px">${a.whatsapp || '—'}</td>
+          <td><span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:capitalize;${rolBadgeAg[a.rol]||''}">${a.rol}</span></td>
+          <td style="font-size:13px;font-weight:600">${a.seguimientosIds.length}</td>
+          <td><span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:capitalize;${estadoBadgeAg[a.estado]||''}">${a.estado}</span></td>
+          <td style="display:flex;gap:4px">
+            <button class="btn-icon" title="Editar" onclick="editarAgente(${idx})">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="btn-icon del" title="Eliminar" onclick="eliminarAgente(${idx})">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+              </svg>
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function abrirModalAgente(idx = null) {
+      editIndexAg = idx;
+      const form = document.getElementById('formAgente');
+      form.reset();
+      document.getElementById('modalAgenteTitle').textContent = idx === null ? 'Nuevo agente' : 'Editar agente';
+      if (idx !== null) {
+        const a = agentes[idx];
+        document.getElementById('agNombre').value   = a.nombre;
+        document.getElementById('agApellido').value = a.apellido;
+        document.getElementById('agCorreo').value   = a.correo;
+        document.getElementById('agWhatsapp').value = a.whatsapp || '';
+        document.getElementById('agRol').value      = a.rol;
+        document.getElementById('agEstado').value   = a.estado;
+        document.getElementById('agZona').value     = a.zona || '';
+      }
+      document.getElementById('modalAgente').classList.add('open');
+    }
+    function cerrarModalAgente() {
+      document.getElementById('modalAgente').classList.remove('open');
+      editIndexAg = null;
+    }
+    function editarAgente(idx)  { abrirModalAgente(idx); }
+    function eliminarAgente(idx) {
+      if (confirm('¿Eliminar este agente?')) {
+        agentes.splice(idx, 1);
+        renderAgentes();
+      }
+    }
+    document.getElementById('formAgente').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const ag = {
+        nombre:          document.getElementById('agNombre').value.trim(),
+        apellido:        document.getElementById('agApellido').value.trim(),
+        correo:          document.getElementById('agCorreo').value.trim(),
+        whatsapp:        document.getElementById('agWhatsapp').value.trim(),
+        rol:             document.getElementById('agRol').value,
+        estado:          document.getElementById('agEstado').value,
+        zona:            document.getElementById('agZona').value.trim(),
+        seguimientosIds: editIndexAg !== null ? agentes[editIndexAg].seguimientosIds : [],
+      };
+      if (editIndexAg !== null) { agentes[editIndexAg] = ag; }
+      else { agentes.push(ag); }
+      cerrarModalAgente();
+      renderAgentes();
+    });
+
+    document.getElementById('searchAgente').addEventListener('input', renderAgentes);
+    document.getElementById('filtroRolAg').addEventListener('change', renderAgentes);
+    document.getElementById('filtroEstadoAg').addEventListener('change', renderAgentes);
+
+    // ── Configuración / Usuarios ──
+    let usuarios = [
+      { nombre: 'Nancy',   apellido: 'Hernández', correo: 'admin@nhbienesraices.com',          rol: 'admin',      estado: 'activo',   ultimoAcceso: '09/06/2026' },
+      { nombre: 'Sofía',   apellido: 'Ramírez',   correo: 'sofia.ramirez@nhbienesraices.com',  rol: 'supervisor', estado: 'activo',   ultimoAcceso: '09/06/2026' },
+      { nombre: 'Diego',   apellido: 'Torres',    correo: 'diego.torres@nhbienesraices.com',   rol: 'agente',     estado: 'activo',   ultimoAcceso: '08/06/2026' },
+      { nombre: 'Valeria', apellido: 'Castro',    correo: 'valeria.castro@nhbienesraices.com', rol: 'agente',     estado: 'activo',   ultimoAcceso: '07/06/2026' },
+      { nombre: 'Marco',   apellido: 'Olvera',    correo: 'marco.olvera@nhbienesraices.com',   rol: 'agente',     estado: 'inactivo', ultimoAcceso: '01/05/2026' },
+    ];
+    let editIndexUs = null;
+
+    const rolCfgStyle = {
+      admin:      'background:#fef3c7;color:#b45309',
+      supervisor: 'background:#f3e8ff;color:#7c3aed',
+      agente:     'background:#eff6ff;color:#1e40af',
+    };
+    const rolCfgLabel = { admin:'Administrador', supervisor:'Supervisor', agente:'Agente' };
+    const rolCfgDesc  = {
+      admin:      'Acceso total al sistema: gestiona usuarios, roles, todos los módulos y configuración general.',
+      supervisor: 'Acceso completo a clientes, propiedades, seguimientos y alertas. Gestiona agentes de su equipo.',
+      agente:     'Solo puede asignar seguimientos (cliente + propiedad), actualizar pasos y enviar alertas automáticas a sus clientes.',
+    };
+    const avatarColors = ['#1e40af','#7c3aed','#0f766e','#b45309','#dc2626'];
+
+    function generarPassword() {
+      const mayus = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      const minus = 'abcdefghjkmnpqrstuvwxyz';
+      const nums  = '23456789';
+      const syms  = '@#$!%&*';
+      const todos = mayus + minus + nums + syms;
+      let pw = mayus[Math.floor(Math.random()*mayus.length)]
+             + minus[Math.floor(Math.random()*minus.length)]
+             + nums[Math.floor(Math.random()*nums.length)]
+             + syms[Math.floor(Math.random()*syms.length)];
+      for (let i = 0; i < 8; i++) pw += todos[Math.floor(Math.random()*todos.length)];
+      pw = pw.split('').sort(()=>Math.random()-.5).join('');
+      document.getElementById('usPassword').value = pw;
+    }
+
+    function copiarPassword() {
+      const pw = document.getElementById('usPassword').value;
+      if (!pw) return;
+      navigator.clipboard.writeText(pw).then(() => {
+        const btn = document.getElementById('btnCopiarPw');
+        btn.style.background = '#dcfce7';
+        setTimeout(() => btn.style.background = '', 1200);
+      });
+    }
+
+    function copiarPwMostrada() {
+      const pw = document.getElementById('pwMostrada').textContent;
+      navigator.clipboard.writeText(pw).then(() => {
+        cerrarVerPw();
+      });
+    }
+    function cerrarVerPw() { document.getElementById('modalVerPw').classList.remove('open'); }
+
+    function actualizarDescRol() {
+      const rol = document.getElementById('usRol').value;
+      const box = document.getElementById('descRolBox');
+      if (rol && rolCfgDesc[rol]) {
+        box.textContent = '🔒 ' + rolCfgDesc[rol];
+        box.style.display = 'block';
+      } else {
+        box.style.display = 'none';
+      }
+    }
+
+    function renderUsuarios() {
+      const buscar = document.getElementById('searchUsuario').value.toLowerCase();
+      const rol    = document.getElementById('filtroRolCfg').value;
+      const estado = document.getElementById('filtroEstadoCfg').value;
+      const tbody  = document.getElementById('usuariosTbody');
+      const empty  = document.getElementById('usuariosEmpty');
+      const count  = document.getElementById('usuarioCount');
+
+      const filtrados = usuarios.filter(u => {
+        const txt = (u.nombre+' '+u.apellido+' '+u.correo).toLowerCase();
+        return (!buscar || txt.includes(buscar))
+          && (!rol    || u.rol    === rol)
+          && (!estado || u.estado === estado);
+      });
+
+      // stats
+      document.getElementById('statCfgTotal').textContent    = usuarios.length;
+      document.getElementById('statCfgActivos').textContent  = usuarios.filter(u=>u.estado==='activo').length;
+      document.getElementById('statCfgAdmins').textContent   = usuarios.filter(u=>u.rol==='admin').length;
+      document.getElementById('statCfgInactivos').textContent= usuarios.filter(u=>u.estado==='inactivo').length;
+
+      count.textContent = filtrados.length === 1 ? '1 usuario' : filtrados.length + ' usuarios';
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = '';
+        empty.classList.add('show');
+        return;
+      }
+      empty.classList.remove('show');
+
+      tbody.innerHTML = filtrados.map(u => {
+        const idx = usuarios.indexOf(u);
+        const ini = (u.nombre[0]+(u.apellido[0]||'')).toUpperCase();
+        const col = avatarColors[idx % avatarColors.length];
+        const esAdmin = u.rol === 'admin';
+        return `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:50%;background:${col};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${ini}</div>
+              <div>
+                <strong>${u.nombre} ${u.apellido}</strong>
+                ${esAdmin ? '<br><span style="font-size:10px;background:#fef3c7;color:#b45309;padding:1px 6px;border-radius:4px;font-weight:700">ADMIN</span>' : ''}
+              </div>
+            </div>
+          </td>
+          <td style="font-size:12px;color:var(--muted)">${u.correo}</td>
+          <td><span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;${rolCfgStyle[u.rol]||''}">${rolCfgLabel[u.rol]||u.rol}</span></td>
+          <td style="font-size:12px;color:var(--muted)">${u.ultimoAcceso}</td>
+          <td>
+            <span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;${u.estado==='activo'?'background:#dcfce7;color:#15803d':'background:#f1f5f9;color:#64748b'}">
+              ${u.estado==='activo'?'Activo':'Inactivo'}
+            </span>
+          </td>
+          <td>
+            <div style="display:flex;gap:4px">
+              <button class="btn-icon" title="Editar" onclick="editarUsuario(${idx})">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button class="btn-icon" title="Generar nueva contraseña" onclick="abrirGenerarPw(${idx})" style="color:#b45309">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </button>
+              ${!esAdmin ? `<button class="btn-icon del" title="Eliminar acceso" onclick="eliminarUsuario(${idx})">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                  <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                </svg>
+              </button>` : ''}
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function abrirModalUsuario(idx = null) {
+      editIndexUs = idx;
+      const form = document.getElementById('formUsuario');
+      form.reset();
+      document.getElementById('descRolBox').style.display = 'none';
+      document.getElementById('modalUsuarioTitle').textContent = idx === null ? 'Nuevo acceso' : 'Editar acceso';
+      if (idx !== null) {
+        const u = usuarios[idx];
+        document.getElementById('usNombre').value   = u.nombre;
+        document.getElementById('usApellido').value = u.apellido;
+        document.getElementById('usCorreo').value   = u.correo;
+        document.getElementById('usRol').value      = u.rol;
+        document.getElementById('usEstado').value   = u.estado;
+        document.getElementById('usPassword').value = '';
+        actualizarDescRol();
+      }
+      document.getElementById('modalUsuario').classList.add('open');
+    }
+    function cerrarModalUsuario() {
+      document.getElementById('modalUsuario').classList.remove('open');
+      editIndexUs = null;
+    }
+    function editarUsuario(idx)  { abrirModalUsuario(idx); }
+    function eliminarUsuario(idx) {
+      if (confirm('¿Eliminar el acceso de este usuario? Esta acción no se puede deshacer.')) {
+        usuarios.splice(idx, 1);
+        renderUsuarios();
+      }
+    }
+    function abrirGenerarPw(idx) {
+      const mayus = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      const minus = 'abcdefghjkmnpqrstuvwxyz';
+      const nums  = '23456789';
+      const syms  = '@#$!%&*';
+      const todos = mayus + minus + nums + syms;
+      let pw = mayus[Math.floor(Math.random()*mayus.length)]
+             + minus[Math.floor(Math.random()*minus.l

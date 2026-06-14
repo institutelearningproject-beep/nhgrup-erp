@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Importar Propiedades — NH Group</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',sans-serif; background:#fdf8f0; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+    .card { background:#fff; border-radius:16px; padding:40px; max-width:460px; width:90%; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,.08); }
+    .logo { font-size:2rem; font-weight:800; color:#b45309; margin-bottom:8px; }
+    h2 { color:#1c1917; margin-bottom:6px; font-size:1.2rem; }
+    p  { color:#78716c; font-size:.9rem; margin-bottom:24px; }
+    .bar-wrap { background:#f5f0e8; border-radius:8px; overflow:hidden; height:12px; margin-bottom:16px; }
+    .bar { height:100%; background:linear-gradient(90deg,#d97706,#b45309); width:0%; transition:width .3s; border-radius:8px; }
+    .status { color:#57534e; font-size:.85rem; }
+    .btn { margin-top:24px; background:#b45309; color:#fff; border:none; border-radius:8px; padding:12px 28px; font-size:.95rem; font-weight:600; cursor:pointer; display:none; }
+    .btn:hover { background:#92400e; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">NH</div>
+  <h2>Importando catálogo de propiedades</h2>
+  <p id="sub">Cargando <strong>51</strong> propiedades activas...</p>
+  <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+  <div class="status" id="status">Preparando...</div>
+  <button class="btn" id="btnGo" onclick="window.location.href='dashboard.html'">Ir al Dashboard →</button>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const nuevas = [{"nombre": "Venta de Casa San Luis Obispo", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Toluca", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "2490000", "moneda": "MXN"}, {"nombre": "Renta de Palapa San Luis Obispo", "tipo": "casa", "operacion": "alquiler", "estado": "disponible", "direccion": "Toluca", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de Palapa San Luis Obispo", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Toluca", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "1850000", "moneda": "MXN"}, {"nombre": "Venta de casa y palapa San Luis Obispo", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Toluca", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "4590000", "moneda": "MXN"}, {"nombre": "Renta Departamento Metepec", "tipo": "departamento", "operacion": "alquiler", "estado": "disponible", "direccion": "Metepec", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "15000", "moneda": "MXN"}, {"nombre": "Venta Departamento Don Mario Toluca", "tipo": "departamento", "operacion": "venta", "estado": "disponible", "direccion": "Toluca", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de Casa Ahuehuetes", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Toluca", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de Casa en Infonavit", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Toluca", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de Casa en Frisones Cacalomacan", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Toluca", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de casa con alberca", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Ixtapan de la sal", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "2700000", "moneda": "MXN"}, {"nombre": "Venta de terreno Ciudad Maderas Bosques", "tipo": "terreno", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "150", "hab": "", "banos": "", "estac": "", "precio": "169000", "moneda": "MXN"}, {"nombre": "Venta de Terreno Capital sur", "tipo": "terreno", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "115", "hab": "", "banos": "", "estac": "", "precio": "690000", "moneda": "MXN"}, {"nombre": "Venta de casa Nueva Ciudad Maderas Marques", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "207", "hab": "", "banos": "", "estac": "", "precio": "2500000", "moneda": "MXN"}, {"nombre": "Venta Residencia Nueva Altozano", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "180", "hab": "", "banos": "", "estac": "", "precio": "6590000", "moneda": "MXN"}, {"nombre": "Venta de Casa en Antalia Ambar Zibata", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "119", "hab": "", "banos": "", "estac": "", "precio": "3250000", "moneda": "MXN"}, {"nombre": "Venta de Terreno Ciudad Maderas Marques olmo 60", "tipo": "terreno", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "206", "hab": "", "banos": "", "estac": "", "precio": "1000000", "moneda": "MXN"}, {"nombre": "Venta de Casa en Canto Zibata", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "136", "hab": "", "banos": "", "estac": "", "precio": "3160000", "moneda": "MXN"}, {"nombre": "Venta de Casa Loredi (Berdea)", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "4350000", "moneda": "MXN"}, {"nombre": "Venta de Casa Loredi (Urdi+)", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "4350000", "moneda": "MXN"}, {"nombre": "Venta de Casa Loredi (Hori)", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "4550000", "moneda": "MXN"}, {"nombre": "Venta de Casa Entrecielos Zibata", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "215", "hab": "3", "banos": "4.5", "estac": "", "precio": "7306000", "moneda": "MXN"}, {"nombre": "Venta de Penthouse Zibata", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "234", "hab": "", "banos": "", "estac": "", "precio": "6504920", "moneda": "MXN"}, {"nombre": "Venta Departamentos Entrecielos Zibata", "tipo": "departamento", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "110", "hab": "", "banos": "", "estac": "", "precio": "3389520", "moneda": "MXN"}, {"nombre": "Venta de Casa OD Zibata", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "4796010", "moneda": "MXN"}, {"nombre": "Venta de Casa DN Zibata", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "5040630", "moneda": "MXN"}, {"nombre": "Venta de Casa AG Zibata", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "5675510", "moneda": "MXN"}, {"nombre": "Venta de Casa en Huizache Zibata", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "153", "hab": "3", "banos": "3.5", "estac": "", "precio": "5509998", "moneda": "MXN"}, {"nombre": "Venta de desarrollo Riscos Intercity", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de desarrollo Riscos Saru Intercity", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de desarrollo Riscos zakia Intercity", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de desarrollo Riscos Zibata Intercity", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta Desarrollo Figue", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta Desarrollo Los Robles zibata", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta Desarrollo Los Robles Juriquilla", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta Desarrollo Los Robles Saru", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta Fraccionamiento Belena", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta Fraccionamiento Ancara", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta Fraccionamiento", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta Fraccionamiento", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Renta Departamento Amueblado La Loma", "tipo": "departamento", "operacion": "alquiler", "estado": "disponible", "direccion": "Queretaro", "m2": "140", "hab": "3", "banos": "", "estac": "", "precio": "37000", "moneda": "MXN"}, {"nombre": "Venta de Casa Nemik", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "116", "hab": "3", "banos": "", "estac": "", "precio": "3950000", "moneda": "MXN"}, {"nombre": "Venta de Casa en Zizana Zakia", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "128", "hab": "3", "banos": "", "estac": "", "precio": "3200000", "moneda": "MXN"}, {"nombre": "Venta casa Huizache", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "171", "hab": "3", "banos": "", "estac": "", "precio": "7077000", "moneda": "MXN"}, {"nombre": "Venta de Casa Huizache (usada)", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Queretaro", "m2": "153", "hab": "", "banos": "", "estac": "", "precio": "4300000", "moneda": "MXN"}, {"nombre": "Venta de Casa en Firenze", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Corregidora", "m2": "405", "hab": "", "banos": "", "estac": "", "precio": "6500000", "moneda": "MXN"}, {"nombre": "Venta de Locales Plaza Terrenova", "tipo": "terreno", "operacion": "venta", "estado": "disponible", "direccion": "Corregidora", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta departamento cancun", "tipo": "departamento", "operacion": "venta", "estado": "disponible", "direccion": "Cancun", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "4500000", "moneda": "MXN"}, {"nombre": "Venta de Casa en Cancun Arboledas", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Cancun", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "6850000", "moneda": "MXN"}, {"nombre": "Venta de Casa", "tipo": "casa", "operacion": "venta", "estado": "disponible", "direccion": "Morelos", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de Terreno", "tipo": "terreno", "operacion": "venta", "estado": "disponible", "direccion": "Morelos", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}, {"nombre": "Venta de Locales", "tipo": "local", "operacion": "venta", "estado": "disponible", "direccion": "Morelos", "m2": "", "hab": "", "banos": "", "estac": "", "precio": "0", "moneda": "MXN"}];
+
+const SB_URL = 'https://volhnmuomklxhylxttbu.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvbGhubXVvbWtseGh5bHh0dGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMjMxNjYsImV4cCI6MjA5Njc5OTE2Nn0.7E8fiiRfuBoumGP-fZob2yeahVYfMVFx59YAqhcgwO0';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+window.addEventListener('load', async () => {
+  const bar    = document.getElementById('bar');
+  const status = document.getElementById('status');
+  const sub    = document.getElementById('sub');
+
+  status.textContent = 'Consultando Supabase...';
+  try {
+    const { data: existentes } = await sb.from('propiedades').select('nombre');
+    const existNombres = new Set((existentes||[]).map(p => (p.nombre||'').toLowerCase().trim()));
+    const paraInsertar = [];
+    let dupes = 0;
+    nuevas.forEach((p, i) => {
+      const key = p.nombre.toLowerCase().trim();
+      bar.style.width = Math.round(((i+1)/nuevas.length)*80) + '%';
+      if (existNombres.has(key)) { dupes++; } else { paraInsertar.push(p); existNombres.add(key); }
+    });
+
+    if (paraInsertar.length > 0) {
+      // Insertar en lotes de 20
+      for (let i = 0; i < paraInsertar.length; i += 20) {
+        const lote = paraInsertar.slice(i, i + 20);
+        await sb.from('propiedades').insert(lote.map(p => ({
+          nombre: p.nombre, tipo: p.tipo, operacion: p.operacion,
+          estado: p.estado, direccion: p.direccion, m2: p.m2,
+          hab: p.hab, banos: p.banos, estac: p.estac,
+          precio: p.precio, moneda: p.moneda || 'MXN', fotos: [],
+        })));
+        bar.style.width = Math.round(80 + ((i+20)/paraInsertar.length)*20) + '%';
+      }
+    }
+
+    bar.style.width = '100%';
+    const total = (existentes||[]).length + paraInsertar.length;
+    status.textContent = '✓ ' + paraInsertar.length + ' propiedades nuevas agregadas (' + dupes + ' duplicadas omitidas)';
+    sub.innerHTML = 'Total en Supabase: <strong>' + total + '</strong> propiedades';
+    document.getElementById('btnGo').style.display = 'inline-block';
+  } catch(err) {
+    status.textContent = '⚠ Error: ' + err.message;
+    console.error(err);
+  }
+});
+</script>
+</body>
+</html>

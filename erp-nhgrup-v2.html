@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NH Grup — ERP Inmobiliario</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#b45309;--primary-dark:#92400e;--accent:#d97706;
+  --bg:#f7f4ef;--bg2:#f0e9df;--bg3:#e8ddd0;
+  --card:#ffffff;--border:#e8e2d9;--border2:#d5c9b8;
+  --text:#1c1714;--muted:#7c6f63;--muted2:#a89880;
+  --sidebar-bg:#1e1a17;--sidebar-w:220px;
+  --ok:#15803d;--ok2:#dcfce7;
+  --error:#dc2626;--error2:#fee2e2;
+  --warn:#d97706;--warn2:#fef3c7;
+  --rad:10px;--rad-sm:7px;--rad-lg:14px;
+  --sh:0 4px 16px rgba(180,83,9,.12);
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;overflow:hidden;height:100vh}
+
+/* ── LOGIN ── */
+#login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#92400e 0%,#b45309 50%,#d97706 100%);z-index:9999}
+.login-card{background:#fff;border-radius:20px;padding:44px 38px;width:360px;box-shadow:0 24px 60px rgba(0,0,0,.2)}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo-icon{width:56px;height:56px;background:linear-gradient(135deg,#b45309,#d97706);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:#fff;font-size:22px;font-weight:800}
+.login-title{font-size:20px;font-weight:800;color:var(--text);text-align:center;margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:26px}
+.login-field{margin-bottom:14px}
+.login-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.login-field input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--rad-sm);font-family:inherit;font-size:14px;color:var(--text);background:#faf8f5;outline:none;transition:.15s}
+.login-field input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(217,119,6,.15)}
+.login-btn{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:var(--rad-sm);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;margin-top:6px}
+.login-btn:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:var(--sh)}
+.login-err{background:var(--error2);color:var(--error);padding:9px 13px;border-radius:var(--rad-sm);font-size:12px;margin-top:10px;display:none;text-align:center}
+
+/* ── APP SHELL ── */
+#app{display:none;height:100vh;flex-direction:column}
+#app.visible{display:flex}
+
+/* Topbar */
+.topbar{height:50px;background:var(--sidebar-bg);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.topbar-brand{display:flex;align-items:center;gap:9px}
+.topbar-logo{width:30px;height:30px;background:linear-gradient(135deg,#b45309,#d97706);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0}
+.topbar-name{font-size:14px;font-weight:700;color:#fff}
+.topbar-name span{color:rgba(255,255,255,.45);font-weight:400;font-size:12px;display:block;line-height:1}
+.topbar-sep{width:1px;height:22px;background:rgba(255,255,255,.15);flex-shrink:0}
+.topbar-clock{font-size:12px;color:rgba(255,255,255,.6);font-weight:500}
+.topbar-spacer{flex:1}
+.topbar-user{display:flex;align-items:center;gap:8px;padding:4px 10px;border-radius:20px;cursor:pointer;transition:.15s}
+.topbar-user:hover{background:rgba(255,255,255,.1)}
+.topbar-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff}
+.topbar-uname{font-size:12px;color:rgba(255,255,255,.85);font-weight:600}
+.topbar-logout{padding:5px 11px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.15);border-radius:20px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.topbar-logout:hover{background:rgba(255,255,255,.2);color:#fff}
+
+/* Main layout */
+.main{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;box-shadow:2px 0 10px rgba(0,0,0,.15)}
+.sb-section{padding:14px 14px 4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.1em;text-transform:uppercase}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:1px 6px;border-radius:8px;cursor:pointer;transition:.15s;color:rgba(255,255,255,.6);font-size:13px;font-weight:500;user-select:none}
+.sb-item:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.9)}
+.sb-item.active{background:rgba(180,83,9,.22);color:#fff;font-weight:700;border-left:2px solid var(--accent)}
+.sb-item svg{flex-shrink:0;opacity:.75}
+.sb-item.active svg{opacity:1}
+.sb-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
+.sb-footer{padding:12px 6px;border-top:1px solid rgba(255,255,255,.07)}
+
+/* Taskbar */
+.taskbar{height:32px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 8px;gap:4px;flex-shrink:0;overflow-x:auto}
+.tb-item{display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:600;color:var(--muted);background:var(--card);border:1px solid var(--border);cursor:pointer;white-space:nowrap;transition:.15s;user-select:none}
+.tb-item:hover{background:var(--bg3);border-color:var(--border2)}
+.tb-item.focused{background:var(--primary);color:#fff;border-color:var(--primary)}
+.tb-x{font-size:13px;line-height:1;opacity:.5;margin-left:2px}
+.tb-x:hover{opacity:1}
+
+/* Desktop */
+.desktop{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+
+/* Windows */
+.win{position:absolute;background:var(--card);border-radius:var(--rad-lg);box-shadow:0 10px 40px rgba(28,23,20,.14),0 0 0 1px var(--border);display:flex;flex-direction:column;min-width:480px;min-height:320px;overflow:hidden}
+.win.minimized{display:none}
+.win.maximized{inset:6px!important;width:auto!important;height:auto!important}
+.win-titlebar{height:38px;background:var(--sidebar-bg);display:flex;align-items:center;padding:0 10px;gap:7px;cursor:move;flex-shrink:0;user-select:none}
+.win-icon{width:22px;height:22px;border-radius:5px;background:rgba(180,83,9,.4);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
+.win-title{font-size:12px;font-weight:700;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.win-btn{width:22px;height:22px;border-radius:50%;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:.15s;color:#fff;font-weight:700;flex-shrink:0}
+.win-btn-min{background:rgba(255,255,255,.18)}.win-btn-min:hover{background:#fbbf24;color:#000}
+.win-btn-max{background:rgba(255,255,255,.18)}.win-btn-max:hover{background:#22c55e;color:#000}
+.win-btn-cls{background:rgba(255,255,255,.18)}.win-btn-cls:hover{background:#ef4444;color:#fff}
+.win-body{flex:1;overflow-y:auto;padding:18px;background:var(--card)}
+.win-resize{position:absolute;bottom:0;right:0;width:14px;height:14px;cursor:se-resize;opacity:.25}
+.win-resize:hover{opacity:.6}
+
+/* ── Components (reusar del ERP original) ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:#faf8f5;border:1px solid var(--border);border-radius:var(--rad);padding:16px;display:flex;align-items:flex-start;gap:12px;transition:.2s}
+.stat-card:hover{box-shadow:var(--sh);transform:translateY(-1px)}
+.stat-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stat-icon.amber{background:#fff8eb;color:var(--primary)}
+.stat-icon.green{background:#f0fdf4;color:#16a34a}
+.stat-icon.blue{background:#eff6ff;color:#2563eb}
+.stat-icon.purple{background:#faf5ff;color:#7c3aed}
+.stat-value{font-size:24px;font-weight:800;color:var(--text);line-height:1;margin-bottom:3px}
+.stat-label{font-size:12px;color:var(--muted)}
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden}
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table thead tr{background:#faf6f0;border-bottom:1px solid var(--border)}
+.data-table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.data-table td{padding:11px 14px;border-bottom:1px solid #f3ede5;color:var(--text);vertical-align:middle}
+.data-table tbody tr:last-child td{border-bottom:none}
+.data-table tbody tr:hover td{background:#fdf9f4}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.filters{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search-wrap input{width:100%;padding:8px 11px 8px 32px;border:1px solid var(--border);border-radius:7px;font-size:13px;color:var(--text);background:var(--card);outline:none;transition:.15s;font-family:inherit}
+.search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(217,119,6,.12)}
+select.filter-sel{padding:8px 28px 8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;color:var(--text);background:var(--card);outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;font-family:inherit;transition:.15s}
+select.filter-sel:focus{border-color:var(--accent)}
+.btn-add{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;font-family:inherit}
+.btn-add:hover{background:var(--primary-dark)}
+.btn-secondary{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
+.btn-secondary:hover{background:var(--bg3)}
+.count-label{font-size:12px;color:var(--muted);margin-bottom:10px}
+.btn-icon{width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:.15s;padding:0}
+.btn-icon:hover{background:var(--bg3);color:var(--text)}
+.btn-icon.del{color:var(--error)}.btn-icon.del:hover{background:var(--error2);border-color:var(--error)}
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty-state svg{margin-bottom:10px;opacity:.3}
+.empty-state p{font-size:14px}
+/* Badges */
+.badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600}
+.badge-blue{background:#eff6ff;color:#1d4ed8}
+.badge-green{background:#f0fdf4;color:#15803d}
+.badge-amber{background:#fffbeb;color:#b45309}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.badge-gray{background:#f1f5f9;color:#64748b}
+.badge-purple{background:#faf5ff;color:#7c3aed}
+.badge-disponible{background:#f0fdf4;color:#15803d}
+.badge-vendida{background:#eff6ff;color:#1d4ed8}
+.badge-alquilada{background:#faf5ff;color:#7c3aed}
+.badge-negociacion{background:#fffbeb;color:#b45309}
+/* Op badges */
+.op-badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:var(--bg2);color:var(--muted);text-transform:capitalize}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(28,23,20,.45);display:none;align-items:center;justify-content:center;z-index:8888;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:14px;padding:26px;width:540px;max-width:96vw;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(28,23,20,.18)}
+.modal-box.sm{width:420px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.modal-header h3{font-size:16px;font-weight:800;color:var(--text)}
+.modal-close{width:28px;height:28px;border-radius:50%;background:var(--bg2);border:none;cursor:pointer;font-size:16px;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:.15s}
+.modal-close:hover{background:var(--error2);color:var(--error)}
+.modal-body{display:flex;flex-direction:column;gap:12px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:14px;border-top:1px solid var(--border)}
+.modal-section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;margin-top:6px}
+/* Forms */
+.form-row{display:grid;gap:10px}
+.form-row.cols2{grid-template-columns:1fr 1fr}
+.form-row.cols3{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.form-group input,.form-group select,.form-group textarea{padding:9px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;color:var(--text);background:#faf8f5;outline:none;transition:.15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(217,119,6,.12)}
+.form-group textarea{resize:vertical;min-height:70px}
+.btn-submit{padding:10px 22px;background:var(--primary);color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;font-family:inherit}
+.btn-submit:hover{background:var(--primary-dark)}
+.btn-cancel{padding:10px 18px;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:7px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
+.btn-cancel:hover{background:var(--bg3)}
+/* Progress */
+.progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;background:var(--primary);border-radius:3px;transition:.3s}
+/* Seguimiento cards */
+.seg-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.seg-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:16px;cursor:pointer;transition:.2s}
+.seg-card:hover{box-shadow:var(--sh);border-color:var(--border2);transform:translateY(-1px)}
+.seg-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.seg-card-title{font-size:14px;font-weight:700;color:var(--text)}
+.seg-card-sub{font-size:12px;color:var(--muted);margin-top:2px}
+/* Seg panel */
+.seg-panel-overlay{position:fixed;inset:0;background:rgba(28,23,20,.4);display:none;align-items:flex-end;justify-content:flex-end;z-index:7777;backdrop-filter:blur(2px)}
+.seg-panel-overlay.open{display:flex}
+.seg-panel{width:420px;height:100%;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.12);display:flex;flex-direction:column;overflow:hidden}
+.seg-panel-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;background:var(--sidebar-bg)}
+.seg-panel-header h3{font-size:15px;font-weight:700;color:#fff}
+.seg-panel-header p{font-size:12px;color:rgba(255,255,255,.6)}
+.seg-panel-body{flex:1;overflow-y:auto;padding:18px}
+.paso-item{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:8px;cursor:pointer;transition:.15s;border:1px solid transparent;margin-bottom:6px}
+.paso-item:hover{background:var(--bg2);border-color:var(--border)}
+.paso-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s;background:#fff}
+.paso-check.done{background:var(--primary);border-color:var(--primary);color:#fff}
+/* Alertas */
+.alert-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:14px;margin-bottom:8px;transition:.2s}
+.alert-card:hover{box-shadow:var(--sh);border-color:var(--border2)}
+.alert-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+/* Agentes */
+.agente-row td:first-child{font-weight:600}
+/* Toast */
+#toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast-item{padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);animation:toastIn .25s ease;display:flex;align-items:center;gap:8px;max-width:300px;pointer-events:auto}
+.toast-ok{background:var(--ok);color:#fff}
+.toast-err{background:var(--error);color:#fff}
+.toast-info{background:var(--primary);color:#fff}
+@keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.welcome-banner{background:linear-gradient(135deg,#92400e 0%,#b45309 50%,#d97706 100%);border-radius:12px;padding:22px 26px;color:#fff;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 28px rgba(180,83,9,.28);position:relative;overflow:hidden}
+.welcome-banner::before{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:rgba(255,255,255,.07);border-radius:50%}
+.welcome-banner h2{font-size:18px;font-weight:800;margin-bottom:3px}
+.welcome-banner p{font-size:13px;opacity:.85}
+.welcome-banner .icon{font-size:42px;opacity:.2;line-height:1}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.module-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);padding:18px;cursor:pointer;transition:.2s;display:flex;align-items:flex-start;gap:14px}
+.module-card:hover{box-shadow:var(--sh);border-color:var(--accent);transform:translateY(-1px)}
+.module-card-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
+.module-card h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.module-card p{font-size:12px;color:var(--muted);line-height:1.4}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted2)}
+.tab-btn{padding:5px 12px;border-radius:6px;border:none;background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
+.tab-btn.active{background:var(--primary);color:#fff}
+.tabs-bar{display:flex;gap:4px;margin-bottom:12px;background:var(--bg2);border-radius:7px;padding:3px;width:fit-content}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">NH</div>
+      <div class="login-title">NH Grup</div>
+      <div class="login-sub">ERP Inmobiliario — Accede a tu cuenta</div>
+    </div>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="correo@nhgrup.com" value="admin"/>
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" value="admin123" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Entrar al sistema</button>
+    <div class="login-err" id="loginErr">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">NH</div>
+      <div class="topbar-name">NH Grup <span>ERP Inmobiliario</span></div>
+    </div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-clock" id="topbarClock"></div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-user">
+      <div class="topbar-avatar" id="topbarInitials">A</div>
+      <span class="topbar-uname" id="topbarName">Admin</span>
+    </div>
+    <button class="topbar-logout" onclick="doLogout()">Salir</button>
+  </div>
+
+  <div class="main">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sb-section">General</div>
+      <div class="sb-item active" onclick="openWin('inicio')" data-mod="inicio">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Inicio
+      </div>
+      <div class="sb-section">Módulos</div>
+      <div class="sb-item" onclick="openWin('propiedades')" data-mod="propiedades">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+        Propiedades
+      </div>
+      <div class="sb-item" onclick="openWin('clientes')" data-mod="clientes">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Clientes
+      </div>
+      <div class="sb-item" onclick="openWin('seguimientos')" data-mod="seguimientos">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Seguimientos
+      </div>
+      <div class="sb-item" onclick="openWin('alertas')" data-mod="alertas">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Alertas<span class="sb-badge" id="sb-badge-alertas">0</span>
+      </div>
+      <div class="sb-section">Administración</div>
+      <div class="sb-item" onclick="openWin('agentes')" data-mod="agentes">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Agentes
+      </div>
+      <div class="sb-item" onclick="openWin('configuracion')" data-mod="configuracion">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configuración
+      </div>
+      <div class="sb-footer">
+        <div class="sb-item" onclick="exportarDatos()" style="color:rgba(255,255,255,.45);font-size:12px">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar datos
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop area -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div class="taskbar" id="taskbar"></div>
+      <div class="desktop" id="desktop"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Global -->
+<div class="modal-overlay" id="globalModal" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal-box" id="globalModalBox"></div>
+</div>
+
+<!-- Seguimiento panel -->
+<div class="seg-panel-overlay" id="segPanelOverlay" onclick="cerrarPanel(event)">
+  <div class="seg-panel" id="segPanel">
+    <div class="seg-panel-header">
+      <div>
+        <h3 id="panelTitle">Seguimiento</h3>
+        <p id="panelSub"></p>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('segPanelOverlay').classList.remove('open')" style="background:rgba(255,255,255,.12);color:#fff">✕</button>
+    </div>
+    <div class="seg-panel-body" id="segPanelBody"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  DATOS GLOBALES
+// ════════════════════════════════════════════
+let clientes = [
+  {nombre:'Carlos', apellido:'Mendoza', correo:'carlos.mendoza@gmail.com', whatsapp:'+52 55 1234 5678', tipo:'vendedor'},
+  {nombre:'Ana',    apellido:'López',   correo:'ana.lopez@gmail.com',       whatsapp:'+52 55 9876 4321', tipo:'comprador'},
+  {nombre:'Roberto',apellido:'Sánchez', correo:'roberto.sanchez@gmail.com', whatsapp:'+52 55 5555 0011', tipo:'arrendador'},
+  {nombre:'María',  apellido:'García',  correo:'maria.garcia@gmail.com',    whatsapp:'+52 55 3344 7788', tipo:'arrendatario'},
+];
+let propiedades = [
+  {nombre:'Casa en Lomas de Chapultepec', tipo:'casa',         operacion:'venta',   direccion:'Av. Reforma 245, Lomas de Chapultepec, CDMX', m2:'280',hab:'4',banos:'3',estac:'2',precio:'8500000',moneda:'MXN',estado:'disponible'},
+  {nombre:'Departamento en Polanco',      tipo:'departamento', operacion:'alquiler',direccion:'Av. Presidente Masaryk 123, Polanco, CDMX',    m2:'95', hab:'2',banos:'2',estac:'1',precio:'28000',  moneda:'MXN',estado:'disponible'},
+];
+const PASOS_VENTA = {pre_visita:'Pre-visita',visita:'Visita realizada',oferta:'Oferta presentada',negociacion:'En negociación',contrato:'Contrato firmado',escritura:'Escrituración',entrega:'Entrega de llaves'};
+const PASOS_ARRENDAMIENTO = {pre_visita:'Pre-visita',visita:'Visita realizada',solicitud:'Solicitud enviada',verificacion:'Verificación',contrato:'Contrato firmado',deposito:'Depósito recibido',entrega:'Entrega de llaves'};
+let seguimientos = [
+  {tipo:'venta',    clienteIdx:0,propiedadIdx:0,estado:'proceso',  pasos:{pre_visita:true,visita:true,oferta:false,negociacion:false,contrato:false,escritura:false,entrega:false},notas:'Cliente muy interesado. Esperando respuesta de oferta.'},
+  {tipo:'venta',    clienteIdx:1,propiedadIdx:0,estado:'cerrado',  pasos:{pre_visita:true,visita:true,oferta:true, negociacion:true, contrato:true, escritura:true, entrega:true}, notas:'Venta completada exitosamente.'},
+  {tipo:'arrendamiento',clienteIdx:2,propiedadIdx:1,estado:'proceso',pasos:{pre_visita:true,visita:true,solicitud:false,verificacion:false,contrato:false,deposito:false,entrega:false},notas:'Arrendador revisando solicitud.'},
+  {tipo:'arrendamiento',clienteIdx:3,propiedadIdx:1,estado:'cerrado',pasos:{pre_visita:true,visita:true,solicitud:true,verificacion:true,contrato:true,deposito:true,entrega:true},notas:'Arrendamiento completado.'},
+];
+let alertas = [
+  {clienteIdx:1,canal:'email',asunto:'¡Tu proceso de venta ha concluido!',mensaje:'Estimada Ana, nos complace informarte que tu proceso de venta ha sido completado.',estado:'enviada',fecha:'2026-06-09'},
+  {clienteIdx:0,canal:'whatsapp',asunto:'Visita programada para mañana',mensaje:'Hola Carlos, te recordamos que mañana tienes visita programada a las 10am.',estado:'pendiente',fecha:'2026-06-10'},
+];
+let agentes = [
+  {nombre:'Diego',   apellido:'Torres',  correo:'diego.torres@nhgrup.com',   tel:'+52 55 1111 2222',rol:'agente',     estado:'activo'},
+  {nombre:'Valeria', apellido:'Castro',  correo:'valeria.castro@nhgrup.com',  tel:'+52 55 3333 4444',rol:'supervisor', estado:'activo'},
+  {nombre:'Marco',   apellido:'Olvera',  correo:'marco.olvera@nhgrup.com',    tel:'+52 55 5555 6666',rol:'agente',     estado:'inactivo'},
+];
+let usuarios = [
+  {nombre:'Nancy',  apellido:'Hernández',correo:'admin@nhgrup.com',           rol:'admin',      estado:'activo',ultimoAcceso:'09/06/2026'},
+  {nombre:'Sofía',  apellido:'Ramírez',  correo:'sofia.ramirez@nhgrup.com',   rol:'supervisor', estado:'activo',ultimoAcceso:'09/06/2026'},
+  {nombre:'Diego',  apellido:'Torres',   correo:'diego.torres@nhgrup.com',    rol:'agente',     estado:'activo',ultimoAcceso:'08/06/2026'},
+];
+
+// ════════════════════════════════════════════
+//  WINDOW MANAGER
+// ════════════════════════════════════════════
+let _wins = {}, _zTop = 100;
+const winMeta = {
+  inicio:        {title:'Inicio — Dashboard', w:900,  h:560, icon:'🏠'},
+  propiedades:   {title:'Propiedades',        w:1020, h:600, icon:'🏢'},
+  clientes:      {title:'Clientes',           w:900,  h:580, icon:'👥'},
+  seguimientos:  {title:'Seguimientos',       w:920,  h:580, icon:'📈'},
+  alertas:       {title:'Alertas',            w:860,  h:560, icon:'🔔'},
+  agentes:       {title:'Agentes',            w:860,  h:540, icon:'🧑‍💼'},
+  configuracion: {title:'Configuración',      w:820,  h:520, icon:'⚙️'},
+};
+
+function openWin(mod){
+  if(_wins[mod]){
+    const w=document.getElementById('win-'+mod);
+    if(w){
+      if(w.classList.contains('minimized'))w.classList.remove('minimized');
+      bringFront(mod); updateTaskbar(); return;
+    }
+  }
+  const meta=winMeta[mod]||{title:mod,w:700,h:500,icon:'📄'};
+  const desk=document.getElementById('desktop');
+  const dr=desk.getBoundingClientRect();
+  const offset=Object.keys(_wins).length*26;
+  const left=Math.min(offset+20, dr.width-meta.w-16);
+  const top=Math.min(offset+6, dr.height-meta.h-16);
+  const win=document.createElement('div');
+  win.className='win'; win.id='win-'+mod;
+  win.style.cssText=`left:${Math.max(0,left)}px;top:${Math.max(0,top)}px;width:${meta.w}px;height:${meta.h}px;z-index:${++_zTop}`;
+  const builders={inicio:buildInicio,propiedades:buildPropiedades,clientes:buildClientes,
+    seguimientos:buildSeguimientos,alertas:buildAlertas,agentes:buildAgentes,configuracion:buildConfiguracion};
+  const content=(builders[mod]?builders[mod]():'<p style="color:var(--muted);padding:20px">Módulo en construcción</p>');
+  win.innerHTML=`
+    <div class="win-titlebar" onmousedown="makeDrag(event,'${mod}')">
+      <span class="win-icon">${meta.icon}</span>
+      <span class="win-title">${meta.title}</span>
+      <button class="win-btn win-btn-min" onclick="minWin('${mod}')" title="Minimizar">─</button>
+      <button class="win-btn win-btn-max" onclick="maxWin('${mod}')" title="Maximizar">□</button>
+      <button class="win-btn win-btn-cls" onclick="closeWin('${mod}')" title="Cerrar">✕</button>
+    </div>
+    <div class="win-body" id="body-${mod}">${content}</div>
+    <div class="win-resize" onmousedown="makeResize(event,'${mod}')">
+      <svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 10L10 0M4 10L10 4M8 10L10 8" stroke="#aaa" stroke-width="1.5"/></svg>
+    </div>`;
+  desk.appendChild(win);
+  _wins[mod]=true;
+  win.addEventListener('mousedown',()=>bringFront(mod));
+  updateTaskbar(); updateSidebarActive(mod);
+  // Render data after DOM is ready
+  setTimeout(()=>{
+    const renders={propiedades:renderPropiedades,clientes:renderClientes,
+      seguimientos:renderSeguimientos,alertas:renderAlertas,agentes:renderAgentes,
+      configuracion:renderUsuarios,inicio:renderInicio};
+    if(renders[mod]) renders[mod]();
+  },30);
+}
+
+function closeWin(mod){
+  const w=document.getElementById('win-'+mod);
+  if(w) w.remove();
+  delete _wins[mod];
+  updateTaskbar(); updateSidebarActive('');
+}
+function minWin(mod){
+  const w=document.getElementById('win-'+mod);
+  if(w) w.classList.toggle('minimized');
+  updateTaskbar();
+}
+function maxWin(mod){
+  const w=document.getElementById('win-'+mod);
+  if(w) w.classList.toggle('maximized');
+}
+function bringFront(mod){
+  const w=document.getElementById('win-'+mod);
+  if(w){w.style.zIndex=++_zTop; updateSidebarActive(mod);}
+}
+function updateSidebarActive(mod){
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.toggle('active',el.dataset.mod===mod));
+}
+function updateTaskbar(){
+  const tb=document.getElementById('taskbar');
+  tb.innerHTML=Object.keys(_wins).map(mod=>{
+    const w=document.getElementById('win-'+mod);
+    const isMin=w&&w.classList.contains('minimized');
+    const meta=winMeta[mod]||{};
+    return`<div class="tb-item${isMin?' focused':''}" onclick="if(document.getElementById('win-${mod}').classList.contains('minimized')){minWin('${mod}');}bringFront('${mod}')">
+      <span>${meta.icon||''}</span>
+      <span>${(meta.title||mod).slice(0,16)}</span>
+      <span class="tb-x" onclick="event.stopPropagation();closeWin('${mod}')">✕</span>
+    </div>`;
+  }).join('');
+}
+function makeDrag(e,mod){
+  const win=document.getElementById('win-'+mod);
+  if(!win||win.classList.contains('maximized'))return;
+  bringFront(mod);
+  const sx=e.clientX-win.offsetLeft, sy=e.clientY-win.offsetTop;
+  const desk=document.getElementById('desktop');
+  const dr=desk.getBoundingClientRect();
+  function move(ev){
+    win.style.left=Math.max(0,Math.min(dr.width-win.offsetWidth,ev.clientX-sx))+'px';
+    win.style.top=Math.max(0,Math.min(dr.height-win.offsetHeight,ev.clientY-sy))+'px';
+  }
+  function up(){document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);}
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',up);
+}
+function makeResize(e,mod){
+  e.stopPropagation();
+  const win=document.getElementById('win-'+mod);
+  if(!win)return;
+  const sx=e.clientX, sy=e.clientY, sw=win.offsetWidth, sh=win.offsetHeight;
+  function move(ev){
+    win.style.width=Math.max(480,sw+ev.clientX-sx)+'px';
+    win.style.height=Math.max(320,sh+ev.clientY-sy)+'px';
+  }
+  function up(){document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);}
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',up);
+}
+
+// ════════════════════════════════════════════
+//  LOGIN / LOGOUT
+// ════════════════════════════════════════════
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if((u==='admin'||u==='admin@nhgrup.com')&&p==='admin123'){
+    document.getElementById('login').style.display='none';
+    document.getElementById('app').classList.add('visible');
+    document.getElementById('topbarInitials').textContent=u[0].toUpperCase();
+    document.getElementById('topbarName').textContent='Admin';
+    updateClock();
+    setInterval(updateClock,1000);
+    cargarDatos();
+    openWin('inicio');
+  } else {
+    document.getElementById('loginErr').style.display='block';
+  }
+}
+function doLogout(){
+  guardarDatos();
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login').style.display='flex';
+  document.getElementById('taskbar').innerHTML='';
+  document.getElementById('desktop').innerHTML='';
+  _wins={}; _zTop=100;
+}
+function updateClock(){
+  const now=new Date();
+  document.getElementById('topbarClock').textContent=now.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' — '+now.toLocaleDateString('es-MX',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+}
+
+// ════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════
+function toast(msg,type='info'){
+  const c=document.getElementById('toast-container');
+  const d=document.createElement('div');
+  d.className='toast-item toast-'+(type==='ok'?'ok':type==='err'?'err':'info');
+  d.textContent=msg;
+  c.appendChild(d);
+  setTimeout(()=>d.remove(),3000);
+}
+
+// ════════════════════════════════════════════
+//  MODAL GLOBAL
+// ════════════════════════════════════════════
+function abrirModal(html){
+  document.getElementById('globalModalBox').innerHTML=html;
+  document.getElementById('globalModal').classList.add('open');
+}
+function cerrarModal(){
+  document.getElementById('globalModal').classList.remove('open');
+}
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function fmtPrecio(p,m){
+  const sym={USD:'$',MXN:'$',VES:'Bs.',EUR:'€'}[m]||'';
+  return (m?m+' ':'')+sym+Number(p).toLocaleString('es-MX');
+}
+function today(){
+  return new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+// ════════════════════════════════════════════
+//  BUILD FUNCTIONS (HTML esqueleto por módulo)
+// ════════════════════════════════════════════
+function buildInicio(){
+  return`<div id="inicio-content">
+  <div class="welcome-banner">
+    <div><h2 id="ini-welcome">Bienvenido</h2><p id="ini-date"></p></div>
+    <div class="icon">🏠</div>
+  </div>
+  <div class="stats-grid" id="ini-stats"></div>
+  <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px">Módulos</div>
+  <div class="modules-grid" id="ini-modules"></div>
+</div>`;
+}
+function buildPropiedades(){
+  return`<div>
+  <div class="toolbar">
+    <div class="filters">
+      <div class="search-wrap">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar propiedad…" id="searchPropiedad" oninput="renderPropiedades()"/>
+      </div>
+      <select class="filter-sel" id="filtroTipoP" onchange="renderPropiedades()">
+        <option value="">Todos los tipos</option>
+        <option value="casa">Casa</option><option value="departamento">Departamento</option>
+        <option value="terreno">Terreno</option><option value="local">Local</option><option value="oficina">Oficina</option>
+      </select>
+      <select class="filter-sel" id="filtroOperacion" onchange="renderPropiedades()">
+        <option value="">Operación</option><option value="venta">Venta</option><option value="alquiler">Alquiler</option>
+      </select>
+      <select class="filter-sel" id="filtroEstado" onchange="renderPropiedades()">
+        <option value="">Estado</option><option value="disponible">Disponible</option>
+        <option value="vendida">Vendida</option><option value="alquilada">Alquilada</option><option value="en negociación">En negociación</option>
+      </select>
+    </div>
+    <button class="btn-add" onclick="abrirModalPropiedad()">+ Nueva propiedad</button>
+  </div>
+  <div class="count-label" id="propiedadesCount"></div>
+  <div class="table-wrap">
+    <table class="data-table"><thead><tr>
+      <th>Propiedad</th><th>Tipo</th><th>Operación</th><th>Precio</th><th>Estado</th><th>Acciones</th>
+    </tr></thead>
+    <tbody id="propiedadesTbody"></tbody></table>
+    <div class="empty-state" id="emptyProp" style="display:none">
+      <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/></svg>
+      <p>No hay propiedades</p>
+    </div>
+  </div>
+</div>`;
+}
+function buildClientes(){
+  return`<div>
+  <div class="toolbar">
+    <div class="filters">
+      <div class="search-wrap">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar cliente…" id="searchCliente" oninput="renderClientes()"/>
+      </div>
+      <select class="filter-sel" id="filtroTipoCliente" onchange="renderClientes()">
+        <option value="">Todos los tipos</option>
+        <option value="vendedor">Vendedor</option><option value="comprador">Comprador</option>
+        <option value="arrendador">Arrendador</option><option value="arrendatario">Arrendatario</option>
+      </select>
+    </div>
+    <button class="btn-add" onclick="abrirModalCliente()">+ Nuevo cliente</button>
+  </div>
+  <div class="count-label" id="clientesCount"></div>
+  <div class="table-wrap">
+    <table class="data-table"><thead><tr>
+      <th>Nombre</th><th>Correo</th><th>WhatsApp</th><th>Tipo</th><th>Acciones</th>
+    </tr></thead>
+    <tbody id="clientesTbody"></tbody></table>
+    <div class="empty-state" id="emptyClientes" style="display:none">
+      <p>No hay clientes</p>
+    </div>
+  </div>
+</div>`;
+}
+function buildSeguimientos(){
+  return`<div>
+  <div class="toolbar">
+    <div class="tabs-bar">
+      <button class="tab-btn active" id="segTabTodos" onclick="filtroEstadoSeg='todos';actualizarTabsSeg(this);renderSeguimientos()">Todos</button>
+      <button class="tab-btn" id="segTabProceso" onclick="filtroEstadoSeg='proceso';actualizarTabsSeg(this);renderSeguimientos()">En proceso</button>
+      <button class="tab-btn" id="segTabCerrados" onclick="filtroEstadoSeg='cerrados';actualizarTabsSeg(this);renderSeguimientos()">Cerrados</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <select class="filter-sel" id="filtroTipoSeg" onchange="renderSeguimientos()">
+        <option value="">Todos</option><option value="venta">Venta</option><option value="arrendamiento">Arrendamiento</option>
+      </select>
+      <button class="btn-add" onclick="abrirModalSeg()">+ Nuevo</button>
+    </div>
+  </div>
+  <div class="seg-cards" id="segCards"></div>
+  <div class="empty-state" id="emptySeg" style="display:none"><p>No hay seguimientos</p></div>
+</div>`;
+}
+function buildAlertas(){
+  return`<div>
+  <div class="toolbar">
+    <div class="filters">
+      <div class="search-wrap">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar alerta…" id="searchAlerta" oninput="renderAlertas()"/>
+      </div>
+      <select class="filter-sel" id="filtroCanal" onchange="renderAlertas()">
+        <option value="">Canal</option><option value="email">Email</option><option value="whatsapp">WhatsApp</option><option value="sms">SMS</option>
+      </select>
+      <select class="filter-sel" id="filtroEstadoAl" onchange="renderAlertas()">
+        <option value="">Estado</option><option value="pendiente">Pendiente</option><option value="enviada">Enviada</option>
+      </select>
+    </div>
+    <button class="btn-add" onclick="abrirModalAlerta()">+ Nueva alerta</button>
+  </div>
+  <div class="count-label" id="alertasCount"></div>
+  <div id="alertasLista"></div>
+  <div class="empty-state" id="emptyAlertas" style="display:none"><p>No hay alertas</p></div>
+</div>`;
+}
+function buildAgentes(){
+  return`<div>
+  <div class="toolbar">
+    <div class="filters">
+      <div class="search-wrap">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar agente…" id="searchAgente" oninput="renderAgentes()"/>
+      </div>
+      <select class="filter-sel" id="filtroRolAg" onchange="renderAgentes()">
+        <option value="">Todos los roles</option><option value="agente">Agente</option><option value="supervisor">Supervisor</option>
+      </select>
+      <select class="filter-sel" id="filtroEstadoAg" onchange="renderAgentes()">
+        <option value="">Estado</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option>
+      </select>
+    </div>
+    <button class="btn-add" onclick="abrirModalAgente()">+ Nuevo agente</button>
+  </div>
+  <div class="count-label" id="agentesCount"></div>
+  <div class="table-wrap">
+    <table class="data-table"><thead><tr>
+      <th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Acciones</th>
+    </tr></thead>
+    <tbody id="agentesTbody"></tbody></table>
+    <div class="empty-state" id="emptyAgentes" style="display:none"><p>No hay agentes</p></div>
+  </div>
+</div>`;
+}
+function buildConfiguracion(){
+  return`<div>
+  <div class="toolbar">
+    <div class="filters">
+      <div class="search-wrap">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar usuario…" id="searchUsuario" oninput="renderUsuarios()"/>
+      </div>
+      <select class="filter-sel" id="filtroRolCfg" onchange="renderUsuarios()">
+        <option value="">Todos los roles</option><option value="admin">Admin</option><option value="supervisor">Supervisor</option><option value="agente">Agente</option>
+      </select>
+      <select class="filter-sel" id="filtroEstadoCfg" onchange="renderUsuarios()">
+        <option value="">Estado</option><option value="activo">Activo</option><option value="inactivo">Inactivo</option>
+      </select>
+    </div>
+    <button class="btn-add" onclick="abrirModalUsuario()">+ Nuevo usuario</button>
+  </div>
+  <div class="count-label" id="usuariosCount"></div>
+  <div class="table-wrap">
+    <table class="data-table"><thead><tr>
+      <th>Usuario</th><th>Correo</th><th>Rol</th><th>Último acceso</th><th>Estado</th><th>Acciones</th>
+    </tr></thead>
+    <tbody id="usuariosTbody"></tbody></table>
+    <div class="empty-state" id="emptyUsuarios" style="display:none"><p>No hay usuarios</p></div>
+  </div>
+</div>`;
+}
+
+// ════════════════════════════════════════════
+//  RENDER: INICIO
+// ════════════════════════════════════════════
+function renderInicio(){
+  const el=document.getElementById('ini-welcome');
+  const dt=document.getElementById('ini-date');
+  const stats=document.getElementById('ini-stats');
+  const mods=document.getElementById('ini-modules');
+  if(!el)return;
+  const h=new Date().getHours();
+  el.textContent=(h<12?'Buenos días':h<18?'Buenas tardes':'Buenas noches')+', Admin';
+  dt.textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const pendAlertas=alertas.filter(a=>a.estado==='pendiente').length;
+  const segActivos=seguimientos.filter(s=>s.estado==='proceso').length;
+  stats.innerHTML=`
+    <div class="stat-card"><div class="stat-icon amber"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/></svg></div><div><div class="stat-value">${propiedades.length}</div><div class="stat-label">Propiedades</div></div></div>
+    <div class="stat-card"><div class="stat-icon blue"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div><div class="stat-value">${clientes.length}</div><div class="stat-label">Clientes</div></div></div>
+    <div class="stat-card"><div class="stat-icon green"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><div class="stat-value">${segActivos}</div><div class="stat-label">Seguimientos activos</div></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg></div><div><div class="stat-value">${pendAlertas}</div><div class="stat-label">Alertas pendientes</div></div></div>`;
+  mods.innerHTML=[
+    {id:'propiedades',icon:'🏢',bg:'#fff8eb',title:'Propiedades',desc:'Gestiona el inventario de inmuebles'},
+    {id:'clientes',   icon:'👥',bg:'#eff6ff',title:'Clientes',   desc:'Vendedores, compradores, arrendadores'},
+    {id:'seguimientos',icon:'📈',bg:'#f0fdf4',title:'Seguimientos',desc:'Procesos de venta y arrendamiento'},
+    {id:'alertas',    icon:'🔔',bg:'#faf5ff',title:'Alertas',    desc:'Notificaciones y comunicaciones'},
+    {id:'agentes',    icon:'🧑‍💼',bg:'#fdf2f8',title:'Agentes',   desc:'Equipo de trabajo'},
+    {id:'configuracion',icon:'⚙️',bg:'#f8fafc',title:'Config',  desc:'Usuarios y roles'},
+  ].map(m=>`<div class="module-card" onclick="openWin('${m.id}')">
+    <div class="module-card-icon" style="background:${m.bg}">${m.icon}</div>
+    <div><h3>${m.title}</h3><p>${m.desc}</p></div>
+  </div>`).join('');
+}
+
+// ════════════════════════════════════════════
+//  RENDER: PROPIEDADES
+// ════════════════════════════════════════════
+let editIdxP=null;
+function renderPropiedades(){
+  const buscar=(document.getElementById('searchPropiedad')||{}).value?.toLowerCase()||'';
+  const tipo=(document.getElementById('filtroTipoP')||{}).value||'';
+  const op=(document.getElementById('filtroOperacion')||{}).value||'';
+  const est=(document.getElementById('filtroEstado')||{}).value||'';
+  const tbody=document.getElementById('propiedadesTbody');
+  const empty=document.getElementById('emptyProp');
+  const count=document.getElementById('propiedadesCount');
+  if(!tbody)return;
+  const fil=propiedades.filter(p=>{
+    const txt=(p.nombre+' '+(p.direccion||'')).toLowerCase();
+    return(!buscar||txt.includes(buscar))&&(!tipo||p.tipo===tipo)&&(!op||p.operacion===op)&&(!est||p.estado===est);
+  });
+  count.textContent=fil.length+' propiedad'+(fil.length!==1?'es':'');
+  if(fil.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const badgeEst={disponible:'badge-disponible',vendida:'badge-vendida',alquilada:'badge-alquilada','en negociación':'badge-negociacion'};
+  tbody.innerHTML=fil.map(p=>{
+    const idx=propiedades.indexOf(p);
+    return`<tr>
+      <td><strong>${p.nombre}</strong>${p.direccion?`<br><span style="font-size:11px;color:var(--muted)">${p.direccion}</span>`:''}</td>
+      <td style="text-transform:capitalize">${p.tipo}</td>
+      <td><span class="op-badge">${p.operacion}</span></td>
+      <td style="font-weight:600">${fmtPrecio(p.precio,p.moneda)}</td>
+      <td><span class="badge ${badgeEst[p.estado]||'badge-gray'}">${p.estado}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn-icon" onclick="abrirModalPropiedad(${idx})" title="Editar">✏️</button>
+        <button class="btn-icon del" onclick="eliminarPropiedad(${idx})" title="Eliminar">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function abrirModalPropiedad(idx=null){
+  editIdxP=idx;
+  const p=idx!==null?propiedades[idx]:{};
+  abrirModal(`
+    <div class="modal-header"><h3>${idx===null?'Nueva propiedad':'Editar propiedad'}</h3><button class="modal-close" onclick="cerrarModal()">✕</button></div>
+    <form onsubmit="guardarPropiedad(event)">
+      <div class="modal-section-label">Datos básicos</div>
+      <div class="modal-body" style="gap:10px">
+        <div class="form-group"><label>Nombre / Descripción</label><input class="fi" id="pNombre" value="${p.nombre||''}" required/></div>
+        <div class="form-row cols2">
+          <div class="form-group"><label>Tipo</label>
+            <select class="fi" id="pTipo">
+              <option value="casa" ${p.tipo==='casa'?'selected':''}>Casa</option>
+              <option value="departamento" ${p.tipo==='departamento'?'selected':''}>Departamento</option>
+              <option value="terreno" ${p.tipo==='terreno'?'selected':''}>Terreno</option>
+              <option value="local" ${p.tipo==='local'?'selected':''}>Local</option>
+              <option value="oficina" ${p.tipo==='oficina'?'selected':''}>Oficina</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Operación</label>
+            <select class="fi" id="pOperacion">
+              <option value="venta" ${p.operacion==='venta'?'selected':''}>Venta</option>
+              <option value="alquiler" ${p.operacion==='alquiler'?'selected':''}>Alquiler</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Dirección</label><input class="fi" id="pDireccion" value="${p.direccion||''}"/></div>
+        <div class="form-row cols3">
+          <div class="form-group"><label>m²</label><input class="fi" id="pM2" type="number" value="${p.m2||''}"/></div>
+          <div class="form-group"><label>Habitaciones</label><input class="fi" id="pHab" type="number" value="${p.hab||''}"/></div>
+          <div class="form-group"><label>Baños</label><input class="fi" id="pBanos" type="number" value="${p.banos||''}"/></div>
+        </div>
+        <div class="form-row cols2">
+          <div class="form-group"><label>Precio</label><input class="fi" id="pPrecio" type="number" value="${p.precio||''}" required/></div>
+          <div class="form-group"><label>Moneda</label>
+            <select class="fi" id="pMoneda">
+              <option value="MXN" ${p.moneda==='MXN'?'selected':''}>MXN</option>
+              <option value="USD" ${p.moneda==='USD'?'selected':''}>USD</option>
+              <option value="EUR" ${p.moneda==='EUR'?'selected':''}>EUR</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Estado</label>
+          <select class="fi" id="pEstado">
+            <option value="disponible" ${p.estado==='disponible'?'selected':''}>Disponible</option>
+            <option value="vendida" ${p.estado==='vendida'?'selected':''}>Vendida</option>
+            <option value="alquilada" ${p.estado==='alquilada'?'selected':''}>Alquilada</option>
+            <option value="en negociación" ${p.estado==='en negociación'?'selected':''}>En negociación</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn-submit">${idx===null?'Crear propiedad':'Guardar cambios'}</button>
+      </div>
+    </form>`);
+}
+function guardarPropiedad(e){
+  e.preventDefault();
+  const rec={
+    nombre:document.getElementById('pNombre').value.trim(),
+    tipo:document.getElementById('pTipo').value,
+    operacion:document.getElementById('pOperacion').value,
+    direccion:document.getElementById('pDireccion').value.trim(),
+    m2:document.getElementById('pM2').value,
+    hab:document.getElementById('pHab').value,
+    banos:document.getElementById('pBanos').value,
+    precio:document.getElementById('pPrecio').value,
+    moneda:document.getElementById('pMoneda').value,
+    estado:document.getElementById('pEstado').value,
+  };
+  if(editIdxP===null) propiedades.push(rec); else propiedades[editIdxP]=rec;
+  guardarDatos(); renderPropiedades(); cerrarModal();
+  toast(editIdxP===null?'Propiedad creada':'Propiedad actualizada','ok');
+}
+function eliminarPropiedad(idx){
+  if(!confirm('¿Eliminar esta propiedad?'))return;
+  propiedades.splice(idx,1);
+  guardarDatos(); renderPropiedades();
+  toast('Propiedad eliminada','info');
+}
+
+// ════════════════════════════════════════════
+//  RENDER: CLIENTES
+// ════════════════════════════════════════════
+let editIdxC=null;
+function renderClientes(){
+  const buscar=(document.getElementById('searchCliente')||{}).value?.toLowerCase()||'';
+  const tipo=(document.getElementById('filtroTipoCliente')||{}).value||'';
+  const tbody=document.getElementById('clientesTbody');
+  const empty=document.getElementById('emptyClientes');
+  const count=document.getElementById('clientesCount');
+  if(!tbody)return;
+  const fil=clientes.filter(c=>{
+    const txt=(c.nombre+' '+c.apellido+' '+c.correo).toLowerCase();
+    return(!buscar||txt.includes(buscar))&&(!tipo||c.tipo===tipo);
+  });
+  count.textContent=fil.length+' cliente'+(fil.length!==1?'s':'');
+  if(fil.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const tipoCls={vendedor:'badge-blue',comprador:'badge-green',arrendador:'badge-amber',arrendatario:'badge-purple'};
+  tbody.innerHTML=fil.map(c=>{
+    const idx=clientes.indexOf(c);
+    return`<tr>
+      <td><strong>${c.nombre} ${c.apellido}</strong></td>
+      <td style="font-size:12px;color:var(--muted)">${c.correo}</td>
+      <td style="font-size:12px">${c.whatsapp||'—'}</td>
+      <td><span class="badge ${tipoCls[c.tipo]||'badge-gray'}">${c.tipo}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn-icon" onclick="abrirModalCliente(${idx})">✏️</button>
+        <button class="btn-icon del" onclick="eliminarCliente(${idx})">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function abrirModalCliente(idx=null){
+  editIdxC=idx;
+  const c=idx!==null?clientes[idx]:{};
+  abrirModal(`
+    <div class="modal-header"><h3>${idx===null?'Nuevo cliente':'Editar cliente'}</h3><button class="modal-close" onclick="cerrarModal()">✕</button></div>
+    <form onsubmit="guardarCliente(event)">
+      <div class="modal-body">
+        <div class="form-row cols2">
+          <div class="form-group"><label>Nombre</label><input class="fi" id="cNombre" value="${c.nombre||''}" required/></div>
+          <div class="form-group"><label>Apellido</label><input class="fi" id="cApellido" value="${c.apellido||''}" required/></div>
+        </div>
+        <div class="form-group"><label>Correo</label><input class="fi" id="cCorreo" type="email" value="${c.correo||''}" required/></div>
+        <div class="form-group"><label>WhatsApp</label><input class="fi" id="cWhatsapp" value="${c.whatsapp||''}"/></div>
+        <div class="form-group"><label>Tipo</label>
+          <select class="fi" id="cTipo">
+            <option value="vendedor" ${c.tipo==='vendedor'?'selected':''}>Vendedor</option>
+            <option value="comprador" ${c.tipo==='comprador'?'selected':''}>Comprador</option>
+            <option value="arrendador" ${c.tipo==='arrendador'?'selected':''}>Arrendador</option>
+            <option value="arrendatario" ${c.tipo==='arrendatario'?'selected':''}>Arrendatario</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn-submit">${idx===null?'Crear cliente':'Guardar cambios'}</button>
+      </div>
+    </form>`);
+}
+function guardarCliente(e){
+  e.preventDefault();
+  const rec={nombre:document.getElementById('cNombre').value.trim(),apellido:document.getElementById('cApellido').value.trim(),correo:document.getElementById('cCorreo').value.trim(),whatsapp:document.getElementById('cWhatsapp').value.trim(),tipo:document.getElementById('cTipo').value};
+  if(editIdxC===null) clientes.push(rec); else clientes[editIdxC]=rec;
+  guardarDatos(); renderClientes(); cerrarModal();
+  toast(editIdxC===null?'Cliente creado':'Cliente actualizado','ok');
+}
+function eliminarCliente(idx){
+  if(!confirm('¿Eliminar este cliente?'))return;
+  clientes.splice(idx,1); guardarDatos(); renderClientes();
+  toast('Cliente eliminado','info');
+}
+
+// ════════════════════════════════════════════
+//  RENDER: SEGUIMIENTOS
+// ════════════════════════════════════════════
+let filtroEstadoSeg='todos', panelSegIdx=null;
+function actualizarTabsSeg(btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function renderSeguimientos(){
+  const filtroTipo=(document.getElementById('filtroTipoSeg')||{}).value||'';
+  const cards=document.getElementById('segCards');
+  const empty=document.getElementById('emptySeg');
+  if(!cards)return;
+  const fil=seguimientos.filter(s=>{
+    const estOk=filtroEstadoSeg==='todos'||(filtroEstadoSeg==='proceso'&&s.estado==='proceso')||(filtroEstadoSeg==='cerrados'&&s.estado==='cerrado');
+    return estOk&&(!filtroTipo||s.tipo===filtroTipo);
+  });
+  if(fil.length===0){cards.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  cards.innerHTML=fil.map(s=>{
+    const idx=seguimientos.indexOf(s);
+    const c=clientes[s.clienteIdx]||{nombre:'—',apellido:''};
+    const p=propiedades[s.propiedadIdx]||{nombre:'—'};
+    const pasosDef=s.tipo==='venta'?PASOS_VENTA:PASOS_ARRENDAMIENTO;
+    const total=Object.keys(pasosDef).length;
+    const done=Object.values(s.pasos).filter(Boolean).length;
+    const pct=Math.round(done/total*100);
+    return`<div class="seg-card" onclick="abrirPanel(${idx})">
+      <div class="seg-card-top">
+        <div>
+          <div class="seg-card-title">${c.nombre} ${c.apellido}</div>
+          <div class="seg-card-sub">${p.nombre}</div>
+        </div>
+        <span class="badge ${s.estado==='cerrado'?'badge-green':'badge-amber'}">${s.estado==='cerrado'?'Cerrado':'En proceso'}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:capitalize">${s.tipo}</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
+        <span>Progreso</span><span>${done}/${total} pasos</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+function abrirModalSeg(){
+  abrirModal(`
+    <div class="modal-header"><h3>Nuevo seguimiento</h3><button class="modal-close" onclick="cerrarModal()">✕</button></div>
+    <form onsubmit="guardarSeg(event)">
+      <div class="modal-body">
+        <div class="form-group"><label>Tipo</label>
+          <select class="fi" id="sTipo"><option value="venta">Venta</option><option value="arrendamiento">Arrendamiento</option></select>
+        </div>
+        <div class="form-group"><label>Cliente</label>
+          <select class="fi" id="sCliente">${clientes.map((c,i)=>`<option value="${i}">${c.nombre} ${c.apellido} (${c.tipo})</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label>Propiedad</label>
+          <select class="fi" id="sPropiedad">${propiedades.map((p,i)=>`<option value="${i}">${p.nombre}</option>`).join('')}</select>
+        </div>
+        <div class="form-group"><label>Notas</label><textarea class="fi" id="sNotas" rows="3"></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn-submit">Crear seguimiento</button>
+      </div>
+    </form>`);
+}
+function guardarSeg(e){
+  e.preventDefault();
+  const tipo=document.getElementById('sTipo').value;
+  const pasosDef=tipo==='venta'?PASOS_VENTA:PASOS_ARRENDAMIENTO;
+  const pasos={};Object.keys(pasosDef).forEach(k=>pasos[k]=false);
+  seguimientos.push({tipo,clienteIdx:+document.getElementById('sCliente').value,propiedadIdx:+document.getElementById('sPropiedad').value,estado:'proceso',pasos,notas:document.getElementById('sNotas').value});
+  guardarDatos(); renderSeguimientos(); cerrarModal(); actualizarBadgeAlertas();
+  toast('Seguimiento creado','ok');
+}
+function abrirPanel(idx){
+  panelSegIdx=idx;
+  const s=seguimientos[idx];
+  const c=clientes[s.clienteIdx]||{};
+  const p=propiedades[s.propiedadIdx]||{};
+  document.getElementById('panelTitle').textContent=`${c.nombre||''} ${c.apellido||''}`;
+  document.getElementById('panelSub').textContent=p.nombre||'';
+  renderPanel();
+  document.getElementById('segPanelOverlay').classList.add('open');
+}
+function renderPanel(){
+  const s=seguimientos[panelSegIdx];
+  if(!s)return;
+  const pasosDef=s.tipo==='venta'?PASOS_VENTA:PASOS_ARRENDAMIENTO;
+  const body=document.getElementById('segPanelBody');
+  body.innerHTML=`
+    <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge badge-amber" style="text-transform:capitalize">${s.tipo}</span>
+      <span class="badge ${s.estado==='cerrado'?'badge-green':'badge-gray'}">${s.estado==='cerrado'?'Cerrado':'En proceso'}</span>
+    </div>
+    ${Object.entries(pasosDef).map(([k,label])=>`
+      <div class="paso-item" onclick="togglePaso(${panelSegIdx},'${k}')">
+        <div class="paso-check ${s.pasos[k]?'done':''}">
+          ${s.pasos[k]?'<svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}
+        </div>
+        <span style="font-size:13px;color:${s.pasos[k]?'var(--text)':'var(--muted)'};font-weight:${s.pasos[k]?'600':'400'};text-decoration:${s.pasos[k]?'line-through':''}">${label}</span>
+      </div>`).join('')}
+    ${s.notas?`<div style="margin-top:14px;padding:10px;background:var(--bg2);border-radius:7px;font-size:12px;color:var(--muted)">${s.notas}</div>`:''}
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn-secondary" style="font-size:12px" onclick="seguimientos[${panelSegIdx}].estado=seguimientos[${panelSegIdx}].estado==='cerrado'?'proceso':'cerrado';guardarDatos();renderSeguimientos();renderPanel();actualizarBadgeAlertas();toast('Estado actualizado','ok')">
+        ${s.estado==='cerrado'?'Reabrir':'Cerrar seguimiento'}
+      </button>
+      <button class="btn-secondary" style="font-size:12px;color:var(--error)" onclick="if(confirm('¿Eliminar este seguimiento?')){seguimientos.splice(${panelSegIdx},1);guardarDatos();renderSeguimientos();cerrarPanel({target:document.getElementById('segPanelOverlay')});toast('Eliminado','info')}">Eliminar</button>
+    </div>`;
+}
+function togglePaso(idx,key){
+  seguimientos[idx].pasos[key]=!seguimientos[idx].pasos[key];
+  guardarDatos(); renderPanel(); renderSeguimientos(); actualizarBadgeAlertas();
+}
+function cerrarPanel(e){
+  if(e.target===document.getElementById('segPanelOverlay'))
+    document.getElementById('segPanelOverlay').classList.remove('open');
+}
+
+// ════════════════════════════════════════════
+//  RENDER: ALERTAS
+// ════════════════════════════════════════════
+function actualizarBadgeAlertas(){
+  const n=alertas.filter(a=>a.estado==='pendiente').length;
+  const b=document.getElementById('sb-badge-alertas');
+  if(b) b.textContent=n;
+}
+function renderAlertas(){
+  const buscar=(document.getElementById('searchAlerta')||{}).value?.toLowerCase()||'';
+  const canal=(document.getElementById('filtroCanal')||{}).value||'';
+  const est=(document.getElementById('filtroEstadoAl')||{}).value||'';
+  const lista=document.getElementById('alertasLista');
+  const empty=document.getElementById('emptyAlertas');
+  const count=document.getElementById('alertasCount');
+  if(!lista)return;
+  const fil=alertas.filter(a=>{
+    const txt=(a.asunto+' '+a.mensaje).toLowerCase();
+    return(!buscar||txt.includes(buscar))&&(!canal||a.canal===canal)&&(!est||a.estado===est);
+  });
+  count.textContent=fil.length+' alerta'+(fil.length!==1?'s':'');
+  if(fil.length===0){lista.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const canalIcon={email:'📧',whatsapp:'💬',sms:'📱'};
+  lista.innerHTML=fil.map(a=>{
+    const idx=alertas.indexOf(a);
+    const c=clientes[a.clienteIdx]||{nombre:'—',apellido:''};
+    return`<div class="alert-card">
+      <div class="alert-card-top">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${canalIcon[a.canal]||'📣'} ${a.asunto}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Para: ${c.nombre} ${c.apellido} · ${a.fecha||''}</div>
+        </div>
+        <span class="badge ${a.estado==='enviada'?'badge-green':'badge-amber'}">${a.estado}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin:6px 0">${a.mensaje}</div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        ${a.estado==='pendiente'?`<button class="btn-secondary" style="font-size:11px;padding:4px 10px" onclick="alertas[${idx}].estado='enviada';guardarDatos();renderAlertas();actualizarBadgeAlertas();toast('Marcada como enviada','ok')">✓ Marcar enviada</button>`:''}
+        <button class="btn-icon del" onclick="if(confirm('¿Eliminar alerta?')){alertas.splice(${idx},1);guardarDatos();renderAlertas();actualizarBadgeAlertas();toast('Eliminada','info')}">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function abrirModalAlerta(){
+  abrirModal(`
+    <div class="modal-header"><h3>Nueva alerta</h3><button class="modal-close" onclick="cerrarModal()">✕</button></div>
+    <form onsubmit="guardarAlerta(event)">
+      <div class="modal-body">
+        <div class="form-group"><label>Cliente</label>
+          <select class="fi" id="alCliente">${clientes.map((c,i)=>`<option value="${i}">${c.nombre} ${c.apellido}</option>`).join('')}</select>
+        </div>
+        <div class="form-row cols2">
+          <div class="form-group"><label>Canal</label>
+            <select class="fi" id="alCanal"><option value="email">Email</option><option value="whatsapp">WhatsApp</option><option value="sms">SMS</option></select>
+          </div>
+          <div class="form-group"><label>Estado</label>
+            <select class="fi" id="alEstado"><option value="pendiente">Pendiente</option><option value="enviada">Enviada</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>Asunto</label><input class="fi" id="alAsunto" required/></div>
+        <div class="form-group"><label>Mensaje</label><textarea class="fi" id="alMensaje" rows="4" required></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn-submit">Crear alerta</button>
+      </div>
+    </form>`);
+}
+function guardarAlerta(e){
+  e.preventDefault();
+  alertas.push({clienteIdx:+document.getElementById('alCliente').value,canal:document.getElementById('alCanal').value,asunto:document.getElementById('alAsunto').value.trim(),mensaje:document.getElementById('alMensaje').value.trim(),estado:document.getElementById('alEstado').value,fecha:today()});
+  guardarDatos(); renderAlertas(); actualizarBadgeAlertas(); cerrarModal();
+  toast('Alerta creada','ok');
+}
+
+// ════════════════════════════════════════════
+//  RENDER: AGENTES
+// ════════════════════════════════════════════
+let editIdxAg=null;
+function renderAgentes(){
+  const buscar=(document.getElementById('searchAgente')||{}).value?.toLowerCase()||'';
+  const rol=(document.getElementById('filtroRolAg')||{}).value||'';
+  const est=(document.getElementById('filtroEstadoAg')||{}).value||'';
+  const tbody=document.getElementById('agentesTbody');
+  const empty=document.getElementById('emptyAgentes');
+  const count=document.getElementById('agentesCount');
+  if(!tbody)return;
+  const fil=agentes.filter(a=>{
+    const txt=(a.nombre+' '+a.apellido+' '+a.correo).toLowerCase();
+    return(!buscar||txt.includes(buscar))&&(!rol||a.rol===rol)&&(!est||a.estado===est);
+  });
+  count.textContent=fil.length+' agente'+(fil.length!==1?'s':'');
+  if(fil.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const rolCls={agente:'badge-blue',supervisor:'badge-purple'};
+  tbody.innerHTML=fil.map(a=>{
+    const idx=agentes.indexOf(a);
+    return`<tr>
+      <td><strong>${a.nombre} ${a.apellido}</strong></td>
+      <td style="font-size:12px;color:var(--muted)">${a.correo}</td>
+      <td style="font-size:12px">${a.tel||'—'}</td>
+      <td><span class="badge ${rolCls[a.rol]||'badge-gray'}">${a.rol}</span></td>
+      <td><span class="badge ${a.estado==='activo'?'badge-green':'badge-gray'}">${a.estado}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn-icon" onclick="abrirModalAgente(${idx})">✏️</button>
+        <button class="btn-icon del" onclick="if(confirm('¿Eliminar agente?')){agentes.splice(${idx},1);guardarDatos();renderAgentes();toast('Eliminado','info')}">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function abrirModalAgente(idx=null){
+  editIdxAg=idx;
+  const a=idx!==null?agentes[idx]:{};
+  abrirModal(`
+    <div class="modal-header"><h3>${idx===null?'Nuevo agente':'Editar agente'}</h3><button class="modal-close" onclick="cerrarModal()">✕</button></div>
+    <form onsubmit="guardarAgente(event)">
+      <div class="modal-body">
+        <div class="form-row cols2">
+          <div class="form-group"><label>Nombre</label><input class="fi" id="agNombre" value="${a.nombre||''}" required/></div>
+          <div class="form-group"><label>Apellido</label><input class="fi" id="agApellido" value="${a.apellido||''}" required/></div>
+        </div>
+        <div class="form-group"><label>Correo</label><input class="fi" id="agCorreo" type="email" value="${a.correo||''}" required/></div>
+        <div class="form-group"><label>Teléfono</label><input class="fi" id="agTel" value="${a.tel||''}"/></div>
+        <div class="form-row cols2">
+          <div class="form-group"><label>Rol</label>
+            <select class="fi" id="agRol">
+              <option value="agente" ${a.rol==='agente'?'selected':''}>Agente</option>
+              <option value="supervisor" ${a.rol==='supervisor'?'selected':''}>Supervisor</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Estado</label>
+            <select class="fi" id="agEstado">
+              <option value="activo" ${a.estado==='activo'?'selected':''}>Activo</option>
+              <option value="inactivo" ${a.estado==='inactivo'?'selected':''}>Inactivo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn-submit">${idx===null?'Crear agente':'Guardar cambios'}</button>
+      </div>
+    </form>`);
+}
+function guardarAgente(e){
+  e.preventDefault();
+  const rec={nombre:document.getElementById('agNombre').value.trim(),apellido:document.getElementById('agApellido').value.trim(),correo:document.getElementById('agCorreo').value.trim(),tel:document.getElementById('agTel').value.trim(),rol:document.getElementById('agRol').value,estado:document.getElementById('agEstado').value};
+  if(editIdxAg===null) agentes.push(rec); else agentes[editIdxAg]=rec;
+  guardarDatos(); renderAgentes(); cerrarModal();
+  toast(editIdxAg===null?'Agente creado':'Agente actualizado','ok');
+}
+
+// ════════════════════════════════════════════
+//  RENDER: USUARIOS (CONFIGURACIÓN)
+// ════════════════════════════════════════════
+let editIdxU=null;
+function renderUsuarios(){
+  const buscar=(document.getElementById('searchUsuario')||{}).value?.toLowerCase()||'';
+  const rol=(document.getElementById('filtroRolCfg')||{}).value||'';
+  const est=(document.getElementById('filtroEstadoCfg')||{}).value||'';
+  const tbody=document.getElementById('usuariosTbody');
+  const empty=document.getElementById('emptyUsuarios');
+  const count=document.getElementById('usuariosCount');
+  if(!tbody)return;
+  const fil=usuarios.filter(u=>{
+    const txt=(u.nombre+' '+u.apellido+' '+u.correo).toLowerCase();
+    return(!buscar||txt.includes(buscar))&&(!rol||u.rol===rol)&&(!est||u.estado===est);
+  });
+  count.textContent=fil.length+' usuario'+(fil.length!==1?'s':'');
+  if(fil.length===0){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const rolCls={admin:'badge-amber',supervisor:'badge-purple',agente:'badge-blue'};
+  tbody.innerHTML=fil.map(u=>{
+    const idx=usuarios.indexOf(u);
+    const isAdmin=u.rol==='admin';
+    return`<tr>
+      <td><strong>${u.nombre} ${u.apellido}</strong>${isAdmin?'<span class="badge badge-amber" style="margin-left:6px;font-size:9px">ADMIN</span>':''}</td>
+      <td style="font-size:12px;color:var(--muted)">${u.correo}</td>
+      <td><span class="badge ${rolCls[u.rol]||'badge-gray'}">${u.rol}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${u.ultimoAcceso}</td>
+      <td><span class="badge ${u.estado==='activo'?'badge-green':'badge-gray'}">${u.estado}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn-icon" onclick="abrirModalUsuario(${idx})">✏️</button>
+        ${!isAdmin?`<button class="btn-icon del" onclick="if(confirm('¿Eliminar usuario?')){usuarios.splice(${idx},1);guardarDatos();renderUsuarios();toast('Eliminado','info')}">🗑</button>`:''}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function abrirModalUsuario(idx=null){
+  editIdxU=idx;
+  const u=idx!==null?usuarios[idx]:{};
+  abrirModal(`
+    <div class="modal-header"><h3>${idx===null?'Nuevo usuario':'Editar usuario'}</h3><button class="modal-close" onclick="cerrarModal()">✕</button></div>
+    <form onsubmit="guardarUsuario(event)">
+      <div class="modal-body">
+        <div class="form-row cols2">
+          <div class="form-group"><label>Nombre</label><input class="fi" id="uNombre" value="${u.nombre||''}" required/></div>
+          <div class="form-group"><label>Apellido</label><input class="fi" id="uApellido" value="${u.apellido||''}" required/></div>
+        </div>
+        <div class="form-group"><label>Correo</label><input class="fi" id="uCorreo" type="email" value="${u.correo||''}" required/></div>
+        <div class="form-row cols2">
+          <div class="form-group"><label>Rol</label>
+            <select class="fi" id="uRol">
+              <option value="admin" ${u.rol==='admin'?'selected':''}>Admin</option>
+              <option value="supervisor" ${u.rol==='supervisor'?'selected':''}>Supervisor</option>
+              <option value="agente" ${u.rol==='agente'?'selected':''}>Agente</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Estado</label>
+            <select class="fi" id="uEstado">
+              <option value="activo" ${u.estado==='activo'?'selected':''}>Activo</option>
+              <option value="inactivo" ${u.estado==='inactivo'?'selected':''}>Inactivo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn-submit">${idx===null?'Crear usuario':'Guardar cambios'}</button>
+      </div>
+    </form>`);
+}
+function guardarUsuario(e){
+  e.preventDefault();
+  const rec={nombre:document.getElementById('uNombre').value.trim(),apellido:document.getElementById('uApellido').value.trim(),correo:document.getElementById('uCorreo').value.trim(),rol:document.getElementById('uRol').value,estado:document.getElementById('uEstado').value,ultimoAcceso:today()};
+  if(editIdxU===null) usuarios.push(rec); else usuarios[editIdxU]=rec;
+  guardarDatos(); renderUsuarios(); cerrarModal();
+  toast(editIdxU===null?'Usuario creado':'Usuario actualizado','ok');
+}
+
+// ════════════════════════════════════════════
+//  PERSISTENCIA localStorage
+// ════════════════════════════════════════════
+const LS='nhgrup_erp_v2';
+function guardarDatos(){
+  try{localStorage.setItem(LS,JSON.stringify({clientes,propiedades,seguimientos,alertas,agentes,usuarios}));}catch(e){}
+}
+function cargarDatos(){
+  try{
+    const d=JSON.parse(localStorage.getItem(LS)||'null');
+    if(!d)return;
+    if(Array.isArray(d.clientes))    clientes=d.clientes;
+    if(Array.isArray(d.propiedades)) propiedades=d.propiedades;
+    if(Array.isArray(d.seguimientos))seguimientos=d.seguimientos;
+    if(Array.isArray(d.alertas))     alertas=d.alertas;
+    if(Array.isArray(d.agentes))     agentes=d.agentes;
+    if(Array.isArray(d.usuarios))    usuarios=d.usuarios;
+  }catch(e){}
+}
+function exportarDatos(){
+  const blob=new Blob([JSON.stringify({clientes,propiedades,seguimientos,alertas,agentes,usuarios},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='nhgrup-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  toast('Datos exportados','ok');
+}
+window.addEventListener('beforeunload',guardarDatos);
+setInterval(guardarDatos,30000);
+</script>
+</body>
+</html>
