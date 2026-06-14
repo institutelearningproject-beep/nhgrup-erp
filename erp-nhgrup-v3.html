@@ -80,7 +80,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .tb-x:hover{opacity:1}
 
 /* Desktop */
-.desktop{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+.desktop{flex:1;position:relative;overflow:auto;background:var(--bg);min-width:1400px;min-height:900px}
 
 /* Windows */
 .win{position:absolute;background:var(--card);border-radius:var(--rad-lg);box-shadow:0 10px 40px rgba(28,23,20,.14),0 0 0 1px var(--border);display:flex;flex-direction:column;min-width:480px;min-height:320px;overflow:hidden}
@@ -452,7 +452,7 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 
 async function sbFetch(method,path,body=null){
   try{
-    const opts={method,headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'resolution=merge-duplicates,return=minimal':''}};
+    const opts={method,headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'resolution=merge-duplicates,return=minimal':method==='PATCH'?'return=minimal':''}};
     if(body) opts.body=JSON.stringify(body);
     const r=await fetch(SB_URL+path,opts);
     if(r.status===204||r.status===201||(r.status===200&&method==='POST')) return true;
@@ -461,26 +461,29 @@ async function sbFetch(method,path,body=null){
 }
 
 async function sbLoadAll(){
-  const rows=await sbFetch('GET','/rest/v1/erp_state?select=key,value');
+  // Order by updated_at desc so latest row wins when keys are duplicated
+  const rows=await sbFetch('GET','/rest/v1/erp_state?select=key,value,updated_at&order=updated_at.desc');
   if(!Array.isArray(rows)) return;
   const map={};
-  rows.forEach(r=>map[r.key]=r.value);
-  // Prefer cloud if cloud has data; keep local if cloud is empty (prevents overwriting unsaved data)
-  if(Array.isArray(map.clientes)     && (map.clientes.length>0     || clientes.length===0))     clientes=map.clientes;
-  if(Array.isArray(map.agentes)      && (map.agentes.length>0      || agentes.length===0))      agentes=map.agentes;
-  if(Array.isArray(map.alertas)      && (map.alertas.length>0      || alertas.length===0))      alertas=map.alertas;
-  if(Array.isArray(map.seguimientos) && (map.seguimientos.length>0 || seguimientos.length===0)) seguimientos=map.seguimientos;
-  if(Array.isArray(map.usuarios)     && (map.usuarios.length>0     || usuarios.length===0))     usuarios=map.usuarios;
+  // First occurrence = latest (due to desc ordering)
+  rows.forEach(r=>{if(!(r.key in map)) map[r.key]=r.value;});
+  // Always use cloud data if it exists (cloud is source of truth after first sync)
+  if(Array.isArray(map.clientes))     clientes=map.clientes;
+  if(Array.isArray(map.agentes))      agentes=map.agentes;
+  if(Array.isArray(map.alertas))      alertas=map.alertas;
+  if(Array.isArray(map.seguimientos)) seguimientos=map.seguimientos;
+  if(Array.isArray(map.usuarios))     usuarios=map.usuarios;
   if(Array.isArray(map.contratos))    contratos=map.contratos;
   if(Array.isArray(map.propiedades) && map.propiedades.length>0){
     const localFotos=propiedades.map(p=>p.fotos||[]);
     propiedades=map.propiedades.map((p,i)=>{p.fotos=localFotos[i]||p.fotos||[];return p;});
   }
-  // Also restore modConfig from cloud if available
-  if(map.modConfig && typeof map.modConfig==='object') {
+  if(map.modConfig && typeof map.modConfig==='object'){
     _modCfg=map.modConfig;
     localStorage.setItem('nhgrup_modConfig_v3',JSON.stringify(_modCfg));
   }
+  // Update localStorage with cloud data
+  guardarDatosLocal();
   console.log('✅ Datos cargados desde Supabase');
 }
 
@@ -634,8 +637,8 @@ function openWin(mod){
   const desk=document.getElementById('desktop');
   const dr=desk.getBoundingClientRect();
   const offset=Object.keys(_wins).length*26;
-  const left=Math.min(offset+20, dr.width-meta.w-16);
-  const top=Math.min(offset+6, dr.height-meta.h-16);
+  const left=offset+20;
+  const top=offset+6;
   const win=document.createElement('div');
   win.className='win'; win.id='win-'+mod;
   win.style.cssText=`left:${Math.max(0,left)}px;top:${Math.max(0,top)}px;width:${meta.w}px;height:${meta.h}px;z-index:${++_zTop}`;
@@ -706,12 +709,12 @@ function makeDrag(e,mod){
   const win=document.getElementById('win-'+mod);
   if(!win||win.classList.contains('maximized'))return;
   bringFront(mod);
-  const sx=e.clientX-win.offsetLeft, sy=e.clientY-win.offsetTop;
   const desk=document.getElementById('desktop');
-  const dr=desk.getBoundingClientRect();
+  const sx=e.clientX-win.offsetLeft+desk.scrollLeft;
+  const sy=e.clientY-win.offsetTop+desk.scrollTop;
   function move(ev){
-    win.style.left=Math.max(0,Math.min(dr.width-win.offsetWidth,ev.clientX-sx))+'px';
-    win.style.top=Math.max(0,Math.min(dr.height-win.offsetHeight,ev.clientY-sy))+'px';
+    win.style.left=Math.max(0,ev.clientX-sx+desk.scrollLeft)+'px';
+    win.style.top=Math.max(0,ev.clientY-sy+desk.scrollTop)+'px';
   }
   function up(){document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);}
   document.addEventListener('mousemove',move);
@@ -2351,10 +2354,9 @@ function openDetalleCliente(idx){
 
 function openDetalleWin(id,title,w,h,bodyContent){
   const desk=document.getElementById('desktop');
-  const dr=desk.getBoundingClientRect();
   const offset=Object.keys(_wins).length*24;
-  const left=Math.max(0,Math.min(offset+30,dr.width-w-12));
-  const top=Math.max(0,Math.min(offset+20,dr.height-h-12));
+  const left=offset+30;
+  const top=offset+20;
   const win=document.createElement('div');
   win.className='win';win.id='win-'+id;
   win.style.cssText=`left:${left}px;top:${top}px;width:${w}px;height:${h}px;z-index:${++_zTop}`;
@@ -2385,8 +2387,11 @@ function renderCurrentModule(){
   if(alertas.length) renderAlertas();
   if(seguimientos.length) renderSeguimientos();
 }
-function guardarDatos(){
+function guardarDatosLocal(){
   try{localStorage.setItem(LS,JSON.stringify({clientes,propiedades,seguimientos,alertas,agentes,usuarios}));}catch(e){}
+}
+function guardarDatos(){
+  guardarDatosLocal();
   sbSyncDatos();
 }
 function cargarDatos(){
