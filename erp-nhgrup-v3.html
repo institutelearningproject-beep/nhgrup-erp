@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>NH Bienes Raíces — ERP</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -401,6 +402,10 @@ select.filter-sel:focus{border-color:var(--accent)}
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
         Portal Cliente
       </div>
+      <div class="sb-item" onclick="openWin('desempeno')" data-mod="desempeno">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Desempeño
+      </div>
       <div class="sb-footer">
         <div class="sb-item" onclick="exportarDatos()" style="color:rgba(255,255,255,.45);font-size:12px">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -546,14 +551,41 @@ let propiedades = [
   {"nombre": "Venta de Locales en Morelos", "tipo": "local", "operacion": "venta", "direccion": "Morelos", "ciudad": "Morelos", "m2": "", "m2cons": "", "hab": "", "banos": "", "estac": "", "precio": "", "moneda": "MXN", "estado": "disponible", "exclusiva": false, "fotos": [], "descripcion": ""},
 ];
 
-const PASOS_VENTA = {pre_visita:'Pre-visita',visita:'Visita realizada',oferta:'Oferta presentada',negociacion:'En negociación',contrato:'Contrato firmado',escritura:'Escrituración',entrega:'Entrega de llaves'};
-const PASOS_ARRENDAMIENTO = {pre_visita:'Pre-visita',visita:'Visita realizada',solicitud:'Solicitud enviada',verificacion:'Verificación',contrato:'Contrato firmado',deposito:'Depósito recibido',entrega:'Entrega de llaves'};
-let seguimientos = [
-  {tipo:'venta',    clienteIdx:0,propiedadIdx:0,estado:'proceso',  pasos:{pre_visita:true,visita:true,oferta:false,negociacion:false,contrato:false,escritura:false,entrega:false},notas:'Cliente muy interesado. Esperando respuesta de oferta.'},
-  {tipo:'venta',    clienteIdx:1,propiedadIdx:0,estado:'cerrado',  pasos:{pre_visita:true,visita:true,oferta:true, negociacion:true, contrato:true, escritura:true, entrega:true}, notas:'Venta completada exitosamente.'},
-  {tipo:'arrendamiento',clienteIdx:2,propiedadIdx:1,estado:'proceso',pasos:{pre_visita:true,visita:true,solicitud:false,verificacion:false,contrato:false,deposito:false,entrega:false},notas:'Arrendador revisando solicitud.'},
-  {tipo:'arrendamiento',clienteIdx:3,propiedadIdx:1,estado:'cerrado',pasos:{pre_visita:true,visita:true,solicitud:true,verificacion:true,contrato:true,deposito:true,entrega:true},notas:'Arrendamiento completado.'},
-];
+const PASOS_VENTA = {
+  diagnostico:'Diagnóstico',
+  contrato_servicio:'Contrato de Servicio',
+  plan_publicidad:'Plan de Publicidad',
+  perfilar_clientes:'Perfilar Clientes',
+  visitas:'Visitas a inmueble',
+  carta_propuesta:'Carta Propuesta',
+  apartado:'Apartado',
+  integracion_expediente:'Integración Expediente',
+  firma_contrato:'Firma de Contrato',
+  notaria:'Notaría',
+  banco:'Banco',
+  firma_escritura:'Firma de Escritura',
+  entrega_inmueble:'Entrega de Inmueble',
+  evaluar_servicio:'Evaluar Servicio NH',
+  solicitar_referidos:'Solicitar Referidos',
+  servicio_posventa:'Servicio Posventa'
+};
+const PASOS_ARRENDAMIENTO = {
+  diagnostico:'Diagnóstico',
+  contrato_servicio:'Contrato de Servicio',
+  plan_publicidad:'Plan de Publicidad',
+  perfilar_clientes:'Perfilar Clientes',
+  visitas:'Visitas a inmueble',
+  carta_propuesta:'Carta Propuesta',
+  apartado:'Apartado',
+  integracion_expediente:'Integración Expediente',
+  firma_contrato:'Firma de Contrato',
+  entrega_inmueble:'Entrega de Inmueble',
+  evaluar_servicio:'Evaluar Servicio NH',
+  solicitar_referidos:'Solicitar Referidos',
+  servicio_posventa:'Servicio Posventa'
+};
+let seguimientos = [];
+
 let alertas = [
   {clienteIdx:1,canal:'email',asunto:'¡Tu proceso de venta ha concluido!',mensaje:'Estimada Ana, nos complace informarte que tu proceso de venta ha sido completado.',estado:'enviada',fecha:'2026-06-09'},
   {clienteIdx:0,canal:'whatsapp',asunto:'Visita programada para mañana',mensaje:'Hola Carlos, te recordamos que mañana tienes visita programada a las 10am.',estado:'pendiente',fecha:'2026-06-10'},
@@ -582,6 +614,7 @@ const winMeta = {
   agentes:       {title:'Agentes',            w:860,  h:540, icon:'🧑‍💼'},
   configuracion: {title:'Configuración',      w:820,  h:520, icon:'⚙️'},
   portal:        {title:'Portal Cliente',      w:900,  h:580, icon:'📋'},
+  desempeno:     {title:'Desempeño Agentes',   w:960,  h:620, icon:'📊'},
 };
 
 function openWin(mod){
@@ -602,7 +635,7 @@ function openWin(mod){
   win.className='win'; win.id='win-'+mod;
   win.style.cssText=`left:${Math.max(0,left)}px;top:${Math.max(0,top)}px;width:${meta.w}px;height:${meta.h}px;z-index:${++_zTop}`;
   const builders={inicio:buildInicio,propiedades:buildPropiedades,clientes:buildClientes,
-    seguimientos:buildSeguimientos,alertas:buildAlertas,agentes:buildAgentes,configuracion:buildConfiguracion,portal:buildPortal};
+    seguimientos:buildSeguimientos,alertas:buildAlertas,agentes:buildAgentes,configuracion:buildConfiguracion,portal:buildPortal,desempeno:buildDesempeno};
   const content=(builders[mod]?builders[mod]():'<p style="color:var(--muted);padding:20px">Módulo en construcción</p>');
   win.innerHTML=`
     <div class="win-titlebar" onmousedown="makeDrag(event,'${mod}')">
@@ -624,7 +657,7 @@ function openWin(mod){
   setTimeout(()=>{
     const renders={propiedades:renderPropiedades,clientes:renderClientes,
       seguimientos:renderSeguimientos,alertas:renderAlertas,agentes:renderAgentes,
-      configuracion:renderUsuarios,inicio:renderInicio,portal:renderPortal};
+      configuracion:renderUsuarios,inicio:renderInicio,portal:renderPortal,desempeno:renderDesempeno};
     if(renders[mod]) renders[mod]();
   },30);
 }
@@ -940,6 +973,130 @@ function buildAgentes(){
 
 // ===== PORTAL CLIENTE MODULE =====
 let contratos = [];
+
+
+// ─── DESEMPEÑO AGENTES ───────────────────────────────────────────────────────
+let _chartInstances = {};
+
+function buildDesempeno(){
+  return `<div style="padding:18px;height:100%;overflow-y:auto;background:#f7f4ef">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <h2 style="font-size:17px;font-weight:800;color:#1a1410">📊 Desempeño Agentes</h2>
+        <p style="font-size:12px;color:#8a7560;margin-top:2px">Resumen semanal de actividad por agente</p>
+      </div>
+      <button onclick="renderDesempeno()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer">↻ Actualizar</button>
+    </div>
+    <div id="desempeno-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+        <div style="font-size:13px;font-weight:700;color:#1a1410;margin-bottom:12px">Procesos Activos</div>
+        <canvas id="chartActivos" height="200"></canvas>
+      </div>
+      <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+        <div style="font-size:13px;font-weight:700;color:#1a1410;margin-bottom:12px">Cierres</div>
+        <canvas id="chartCierres" height="200"></canvas>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+        <div style="font-size:13px;font-weight:700;color:#1a1410;margin-bottom:12px">Captaciones</div>
+        <canvas id="chartCaptaciones" height="200"></canvas>
+      </div>
+      <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+        <div style="font-size:13px;font-weight:700;color:#1a1410;margin-bottom:12px">Clientes Asignados</div>
+        <canvas id="chartClientes" height="200"></canvas>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+      <div style="font-size:13px;font-weight:700;color:#1a1410;margin-bottom:12px">📋 Detalle por Agente</div>
+      <div id="desempeno-tabla"></div>
+    </div>
+  </div>`;
+}
+
+function renderDesempeno(){
+  // Destroy previous chart instances
+  Object.values(_chartInstances).forEach(c=>{try{c.destroy();}catch(e){}});
+  _chartInstances={};
+
+  if(!agentes||agentes.length===0){
+    const kpis=document.getElementById('desempeno-kpis');
+    if(kpis) kpis.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#8a7560;padding:30px;font-size:14px">No hay agentes registrados aún. Registra agentes en el módulo Agentes.</div>';
+    return;
+  }
+
+  const nombres=agentes.map(a=>a.nombre+' '+a.apellido);
+  const colors=['#b45309','#d97706','#92400e','#f59e0b','#78350f','#a16207'];
+
+  // Stats por agente
+  const activos=agentes.map((_,i)=>seguimientos.filter(s=>s.agenteIdx===i&&s.estado==='proceso').length);
+  const cierres=agentes.map((_,i)=>seguimientos.filter(s=>s.agenteIdx===i&&s.estado==='cerrado').length);
+  const captaciones=agentes.map((_,i)=>propiedades.filter(p=>p.agenteIdx===i).length);
+  const clientes=agentes.map((_,i)=>seguimientos.filter(s=>s.agenteIdx===i).map(s=>s.clienteIdx).filter((v,idx,a)=>a.indexOf(v)===idx).length);
+
+  const totalActivos=activos.reduce((a,b)=>a+b,0);
+  const totalCierres=cierres.reduce((a,b)=>a+b,0);
+  const totalCaptaciones=captaciones.reduce((a,b)=>a+b,0);
+  const topAgIdx=cierres.indexOf(Math.max(...cierres));
+  const topAg=cierres[topAgIdx]>0?agentes[topAgIdx].nombre:'-';
+
+  // KPIs
+  const kpis=document.getElementById('desempeno-kpis');
+  if(kpis) kpis.innerHTML=
+    '<div style="background:#fff;border-radius:10px;padding:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="font-size:24px;font-weight:800;color:#b45309">'+agentes.length+'</div><div style="font-size:11px;color:#8a7560;margin-top:3px">Agentes Activos</div></div>'+
+    '<div style="background:#fff;border-radius:10px;padding:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="font-size:24px;font-weight:800;color:#b45309">'+totalActivos+'</div><div style="font-size:11px;color:#8a7560;margin-top:3px">Procesos en Curso</div></div>'+
+    '<div style="background:#fff;border-radius:10px;padding:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="font-size:24px;font-weight:800;color:#b45309">'+totalCierres+'</div><div style="font-size:11px;color:#8a7560;margin-top:3px">Cierres Totales</div></div>'+
+    '<div style="background:#fff;border-radius:10px;padding:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="font-size:24px;font-weight:800;color:#b45309">'+totalCaptaciones+'</div><div style="font-size:11px;color:#8a7560;margin-top:3px">Captaciones</div></div>'+
+    '<div style="background:#fff;border-radius:10px;padding:14px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06)"><div style="font-size:14px;font-weight:800;color:#b45309">'+topAg+'</div><div style="font-size:11px;color:#8a7560;margin-top:3px">Top Agente</div></div>';
+
+  const chartCfg=(label,data,bgColor)=>({
+    type:'bar',
+    data:{labels:nombres,datasets:[{label,data,backgroundColor:bgColor||colors.slice(0,agentes.length),borderRadius:6,borderSkipped:false}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:'#8a7560'},grid:{color:'#f0ebe3'}},x:{ticks:{color:'#1a1410',font:{weight:'600'}},grid:{display:false}}}}
+  });
+
+  const mkChart=(id,label,data,color)=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    const ctx=el.getContext('2d');
+    _chartInstances[id]=new Chart(ctx,chartCfg(label,data,color?agentes.map((_,i)=>i===data.indexOf(Math.max(...data,0))?color:'#e5d5b0'):colors.slice(0,agentes.length)));
+  };
+
+  setTimeout(()=>{
+    mkChart('chartActivos','Procesos Activos',activos,'#b45309');
+    mkChart('chartCierres','Cierres',cierres,'#d97706');
+    mkChart('chartCaptaciones','Captaciones',captaciones,'#92400e');
+    mkChart('chartClientes','Clientes',clientes,'#b45309');
+  },80);
+
+  // Tabla detalle
+  const tabla=document.getElementById('desempeno-tabla');
+  if(tabla){
+    let html='<table style="width:100%;border-collapse:collapse;font-size:13px">';
+    html+='<thead><tr style="border-bottom:2px solid #f0ebe3">';
+    ['Agente','Activos','Cierres','Captaciones','Clientes','Conversión'].forEach(h=>{
+      html+='<th style="text-align:left;padding:8px 10px;font-size:11px;font-weight:700;color:#8a7560;text-transform:uppercase;letter-spacing:.5px">'+h+'</th>';
+    });
+    html+='</tr></thead><tbody>';
+    agentes.forEach((ag,i)=>{
+      const tot=activos[i]+cierres[i];
+      const conv=tot>0?Math.round(cierres[i]/tot*100):0;
+      const segsAg=seguimientos.filter(s=>s.agenteIdx===i);
+      html+='<tr style="border-bottom:1px solid #f7f4ef">';
+      html+='<td style="padding:10px"><div style="font-weight:700;color:#1a1410">'+ag.nombre+' '+ag.apellido+'</div><div style="font-size:11px;color:#8a7560">'+ag.especialidad+'</div></td>';
+      html+='<td style="padding:10px;text-align:center"><span style="background:#fef3c7;color:#92400e;border-radius:20px;padding:3px 10px;font-weight:700">'+activos[i]+'</span></td>';
+      html+='<td style="padding:10px;text-align:center"><span style="background:#d1fae5;color:#065f46;border-radius:20px;padding:3px 10px;font-weight:700">'+cierres[i]+'</span></td>';
+      html+='<td style="padding:10px;text-align:center">'+captaciones[i]+'</td>';
+      html+='<td style="padding:10px;text-align:center">'+clientes[i]+'</td>';
+      html+='<td style="padding:10px;text-align:center"><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;background:#f0ebe3;border-radius:10px;height:6px;overflow:hidden"><div style="width:'+conv+'%;background:#b45309;height:100%;border-radius:10px"></div></div><span style="font-weight:700;color:#b45309;font-size:11px">'+conv+'%</span></div></td>';
+      html+='</tr>';
+    });
+    html+='</tbody></table>';
+    tabla.innerHTML=html;
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function buildPortal(){
   return `<div>
@@ -1311,6 +1468,8 @@ function abrirModalPropiedad(idx=null){
               <option value="terreno" ${p.tipo==='terreno'?'selected':''}>Terreno</option>
               <option value="local" ${p.tipo==='local'?'selected':''}>Local</option>
               <option value="oficina" ${p.tipo==='oficina'?'selected':''}>Oficina</option>
+              <option value="nave" ${p.tipo==='nave'?'selected':''}>Nave Industrial</option>
+              <option value="bodega" ${p.tipo==='bodega'?'selected':''}>Bodega</option>
             </select>
           </div>
           <div class="form-group"><label>Operación</label>
@@ -1539,7 +1698,10 @@ function renderSeguimientos(){
         </div>
         <span class="badge ${s.estado==='cerrado'?'badge-green':'badge-amber'}">${s.estado==='cerrado'?'Cerrado':'En proceso'}</span>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:capitalize">${s.tipo}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;display:flex;gap:10px;align-items:center">
+        <span style="text-transform:capitalize">${s.tipo}</span>
+        ${s.agenteIdx!=null&&agentes[s.agenteIdx]?`<span style="color:var(--primary);font-weight:600">🧑‍💼 ${agentes[s.agenteIdx].nombre} ${agentes[s.agenteIdx].apellido}</span>`:''}
+      </div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px">
         <span>Progreso</span><span>${done}/${total} pasos</span>
       </div>
@@ -1561,6 +1723,12 @@ function abrirModalSeg(){
         <div class="form-group"><label>Propiedad</label>
           <select class="fi" id="sPropiedad">${propiedades.map((p,i)=>`<option value="${i}">${p.nombre}</option>`).join('')}</select>
         </div>
+        <div class="form-group"><label>Agente asignado</label>
+          <select class="fi" id="sAgente">
+            <option value="">— Sin asignar —</option>
+            ${agentes.map((a,i)=>`<option value="${i}">${a.nombre} ${a.apellido}</option>`).join('')}
+          </select>
+        </div>
         <div class="form-group"><label>Notas</label><textarea class="fi" id="sNotas" rows="3"></textarea></div>
       </div>
       <div class="modal-footer">
@@ -1574,7 +1742,8 @@ function guardarSeg(e){
   const tipo=document.getElementById('sTipo').value;
   const pasosDef=tipo==='venta'?PASOS_VENTA:PASOS_ARRENDAMIENTO;
   const pasos={};Object.keys(pasosDef).forEach(k=>pasos[k]=false);
-  seguimientos.push({tipo,clienteIdx:+document.getElementById('sCliente').value,propiedadIdx:+document.getElementById('sPropiedad').value,estado:'proceso',pasos,notas:document.getElementById('sNotas').value});
+  const sAgente=document.getElementById('sAgente').value;
+  seguimientos.push({tipo,clienteIdx:+document.getElementById('sCliente').value,propiedadIdx:+document.getElementById('sPropiedad').value,agenteIdx:sAgente!==''?+sAgente:null,estado:'proceso',pasos,notas:document.getElementById('sNotas').value,fechaInicio:new Date().toISOString().split('T')[0]});
   guardarDatos(); renderSeguimientos(); cerrarModal(); actualizarBadgeAlertas();
   toast('Seguimiento creado','ok');
 }
@@ -1585,6 +1754,9 @@ function abrirPanel(idx){
   const p=propiedades[s.propiedadIdx]||{};
   document.getElementById('panelTitle').textContent=`${c.nombre||''} ${c.apellido||''}`;
   document.getElementById('panelSub').textContent=p.nombre||'';
+  const ag=s.agenteIdx!=null?agentes[s.agenteIdx]:null;
+  const panelAg=document.getElementById('panelAgente');
+  if(panelAg) panelAg.textContent=ag?('🧑‍💼 '+ag.nombre+' '+ag.apellido):'Sin agente';
   renderPanel();
   document.getElementById('segPanelOverlay').classList.add('open');
 }
