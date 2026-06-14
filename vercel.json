@@ -1,4 +1,7 @@
 {
   "name": "nhgrup-erp",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/", "destination": "/erp-nhgrup-v3.html" }
+  ]
 }
