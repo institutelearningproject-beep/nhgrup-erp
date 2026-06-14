@@ -607,10 +607,11 @@ let agentes = [
   {nombre:'Marco',   apellido:'Olvera',  correo:'marco.olvera@nhgrup.com',    tel:'+52 55 5555 6666',rol:'agente',     estado:'inactivo'},
 ];
 let usuarios = [
-  {nombre:'Nancy',  apellido:'Hernández',correo:'admin@nhgrup.com',           rol:'admin',      estado:'activo',ultimoAcceso:'09/06/2026'},
-  {nombre:'Sofía',  apellido:'Ramírez',  correo:'sofia.ramirez@nhgrup.com',   rol:'supervisor', estado:'activo',ultimoAcceso:'09/06/2026'},
-  {nombre:'Diego',  apellido:'Torres',   correo:'diego.torres@nhgrup.com',    rol:'agente',     estado:'activo',ultimoAcceso:'08/06/2026'},
+  {nombre:'Nancy',  apellido:'Hernández',correo:'admin@nhgrup.com',           rol:'admin',      estado:'activo',ultimoAcceso:'09/06/2026', pass:'ha63f45da'},
+  {nombre:'Sofía',  apellido:'Ramírez',  correo:'sofia.ramirez@nhgrup.com',   rol:'supervisor', estado:'activo',ultimoAcceso:'09/06/2026', pass:''},
+  {nombre:'Diego',  apellido:'Torres',   correo:'diego.torres@nhgrup.com',    rol:'agente',     estado:'activo',ultimoAcceso:'08/06/2026', pass:''},
 ];
+let currentUser=null;
 
 // ════════════════════════════════════════════
 //  WINDOW MANAGER
@@ -740,17 +741,29 @@ function makeResize(e,mod){
 // ════════════════════════════════════════════
 //  LOGIN / LOGOUT
 // ════════════════════════════════════════════
+function hashPass(s){let h=5381;s=String(s);for(let i=0;i<s.length;i++){h=((h*33)^s.charCodeAt(i))>>>0;}return 'h'+h.toString(16);}
+function autenticar(u,p){
+  const key=(u||'').toLowerCase();
+  const match=usuarios.find(x=>x.estado!=='inactivo' && x.pass && (((x.correo||'').toLowerCase()===key)||((x.correo||'').toLowerCase().split('@')[0]===key)) && x.pass===hashPass(p));
+  if(match) return match;
+  // Acceso de rescate: nunca quedar bloqueado fuera del sistema
+  if((key==='admin'||key==='admin@nhgrup.com') && p==='admin123') return usuarios.find(x=>x.rol==='admin')||{nombre:'Admin',apellido:'',correo:'admin@nhgrup.com',rol:'admin'};
+  return null;
+}
 function doLogin(){
   const u=document.getElementById('loginUser').value.trim();
   const p=document.getElementById('loginPass').value;
-  if((u==='admin'||u==='admin@nhgrup.com')&&p==='admin123'){
+  cargarDatos(); // cargar usuarios guardados ANTES de validar credenciales
+  const user=autenticar(u,p);
+  if(user){
+    currentUser=user;
     document.getElementById('login').style.display='none';
     document.getElementById('app').classList.add('visible');
-    document.getElementById('topbarInitials').textContent=u[0].toUpperCase();
-    document.getElementById('topbarName').textContent='Admin';
+    document.getElementById('topbarInitials').textContent=(user.nombre||'A')[0].toUpperCase();
+    document.getElementById('topbarName').textContent=(user.nombre||'Admin')+(user.rol?' · '+user.rol:'');
+    document.getElementById('loginErr').style.display='none';
     updateClock();
     setInterval(updateClock,1000);
-    cargarDatos();
     sbLoadAll().then(()=>{
       renderCurrentModule();
       showToast('Datos sincronizados con la nube ☁️','success');
@@ -2138,7 +2151,7 @@ function renderUsuarios(){
       <td><span class="badge ${u.estado==='activo'?'badge-green':'badge-gray'}">${u.estado}</span></td>
       <td><div style="display:flex;gap:4px">
         <button class="btn-icon" onclick="abrirModalUsuario(${idx})">✏️</button>
-        ${!isAdmin?`<button class="btn-icon del" onclick="if(confirm('¿Eliminar usuario?')){usuarios.splice(${idx},1);guardarDatos();renderUsuarios();toast('Eliminado','info')}">🗑</button>`:''}
+        <button class="btn-icon del" onclick="eliminarUsuario(${idx})" title="Eliminar usuario">🗑</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -2154,7 +2167,8 @@ function abrirModalUsuario(idx=null){
           <div class="form-group"><label>Nombre</label><input class="fi" id="uNombre" value="${u.nombre||''}" required/></div>
           <div class="form-group"><label>Apellido</label><input class="fi" id="uApellido" value="${u.apellido||''}" required/></div>
         </div>
-        <div class="form-group"><label>Correo</label><input class="fi" id="uCorreo" type="email" value="${u.correo||''}" required/></div>
+        <div class="form-group"><label>Correo (usuario para iniciar sesión)</label><input class="fi" id="uCorreo" type="email" value="${u.correo||''}" required/></div>
+        <div class="form-group"><label>Contraseña ${idx===null?'':'<span style=\'color:var(--muted);font-weight:400;font-size:11px\'>(dejar en blanco para no cambiarla)</span>'}</label><input class="fi" id="uPass" type="password" placeholder="••••••••" value="" ${idx===null?'required':''} autocomplete="new-password"/></div>
         <div class="form-row cols2">
           <div class="form-group"><label>Rol</label>
             <select class="fi" id="uRol">
@@ -2179,10 +2193,20 @@ function abrirModalUsuario(idx=null){
 }
 function guardarUsuario(e){
   e.preventDefault();
-  const rec={nombre:document.getElementById('uNombre').value.trim(),apellido:document.getElementById('uApellido').value.trim(),correo:document.getElementById('uCorreo').value.trim(),rol:document.getElementById('uRol').value,estado:document.getElementById('uEstado').value,ultimoAcceso:today()};
+  const prev=editIdxU!==null?(usuarios[editIdxU]||{}):{};
+  const passInput=document.getElementById('uPass').value;
+  const pass=passInput?hashPass(passInput):(prev.pass||'');
+  if(!pass){ toast('Debes asignar una contraseña','err'); return; }
+  const rec={nombre:document.getElementById('uNombre').value.trim(),apellido:document.getElementById('uApellido').value.trim(),correo:document.getElementById('uCorreo').value.trim(),rol:document.getElementById('uRol').value,estado:document.getElementById('uEstado').value,ultimoAcceso:prev.ultimoAcceso||today(),pass};
   if(editIdxU===null) usuarios.push(rec); else usuarios[editIdxU]=rec;
   guardarDatos(); renderUsuarios(); cerrarModal();
   toast(editIdxU===null?'Usuario creado':'Usuario actualizado','ok');
+}
+function eliminarUsuario(idx){
+  const u=usuarios[idx]; if(!u) return;
+  if(currentUser && (u.correo||'').toLowerCase()===(currentUser.correo||'').toLowerCase()){ toast('No puedes eliminar tu propia cuenta','err'); return; }
+  if(u.rol==='admin' && usuarios.filter(x=>x.rol==='admin').length<=1){ toast('Debe quedar al menos un administrador','err'); return; }
+  if(confirm('¿Eliminar a '+(u.nombre||'')+' '+(u.apellido||'')+'?')){ usuarios.splice(idx,1); guardarDatos(); renderUsuarios(); toast('Usuario eliminado','info'); }
 }
 
 
