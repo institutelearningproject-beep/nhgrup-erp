@@ -464,27 +464,30 @@ async function sbLoadAll(){
   // Order by updated_at desc so latest row wins when keys are duplicated
   const rows=await sbFetch('GET','/rest/v1/erp_state?select=key,value,updated_at&order=updated_at.desc');
   if(!Array.isArray(rows)) return;
-  const map={};
+  const map={}, ts={};
   // First occurrence = latest (due to desc ordering)
-  rows.forEach(r=>{if(!(r.key in map)) map[r.key]=r.value;});
-  // Always use cloud data if it exists (cloud is source of truth after first sync)
-  if(Array.isArray(map.clientes))     clientes=map.clientes;
-  if(Array.isArray(map.agentes))      agentes=map.agentes;
-  if(Array.isArray(map.alertas))      alertas=map.alertas;
-  if(Array.isArray(map.seguimientos)) seguimientos=map.seguimientos;
-  if(Array.isArray(map.usuarios))     usuarios=map.usuarios;
-  if(Array.isArray(map.contratos))    contratos=map.contratos;
-  if(Array.isArray(map.propiedades) && map.propiedades.length>0){
+  rows.forEach(r=>{if(!(r.key in map)){map[r.key]=r.value; ts[r.key]=r.updated_at||'';}});
+  // localStorage es la FUENTE PRINCIPAL. Solo se adopta la nube si es mas reciente
+  // que la ultima edicion local, o si no hay datos locales. Asi un dato viejo o un
+  // guardado fallido en la nube nunca borra lo que acabas de crear (admin, agente, etc).
+  const localTs=localStorage.getItem(LS+'_ts')||'';
+  const cloudNewer=k=>(ts[k]||'')>localTs; // ISO en UTC: comparables como texto
+  if(Array.isArray(map.clientes)     && (clientes.length===0     || cloudNewer('clientes')))     clientes=map.clientes;
+  if(Array.isArray(map.agentes)      && (agentes.length===0      || cloudNewer('agentes')))      agentes=map.agentes;
+  if(Array.isArray(map.alertas)      && (alertas.length===0      || cloudNewer('alertas')))      alertas=map.alertas;
+  if(Array.isArray(map.seguimientos) && (seguimientos.length===0 || cloudNewer('seguimientos'))) seguimientos=map.seguimientos;
+  if(Array.isArray(map.usuarios)     && (usuarios.length===0     || cloudNewer('usuarios')))     usuarios=map.usuarios;
+  if(Array.isArray(map.contratos)    && (contratos.length===0    || cloudNewer('contratos')))    contratos=map.contratos;
+  if(Array.isArray(map.propiedades) && map.propiedades.length>0 && (propiedades.length===0 || cloudNewer('propiedades'))){
     const localFotos=propiedades.map(p=>p.fotos||[]);
     propiedades=map.propiedades.map((p,i)=>{p.fotos=localFotos[i]||p.fotos||[];return p;});
   }
-  if(map.modConfig && typeof map.modConfig==='object'){
+  if(map.modConfig && typeof map.modConfig==='object' && cloudNewer('modConfig')){
     _modCfg=map.modConfig;
     localStorage.setItem('nhgrup_modConfig_v3',JSON.stringify(_modCfg));
   }
-  // Update localStorage with cloud data
   guardarDatosLocal();
-  console.log('✅ Datos cargados desde Supabase');
+  console.log('✅ Datos sincronizados con Supabase');
 }
 
 async function sbSave(key){
@@ -2388,7 +2391,10 @@ function renderCurrentModule(){
   if(seguimientos.length) renderSeguimientos();
 }
 function guardarDatosLocal(){
-  try{localStorage.setItem(LS,JSON.stringify({clientes,propiedades,seguimientos,alertas,agentes,usuarios}));}catch(e){}
+  try{
+    localStorage.setItem(LS,JSON.stringify({clientes,propiedades,seguimientos,alertas,agentes,usuarios}));
+    localStorage.setItem(LS+'_ts',new Date().toISOString());
+  }catch(e){}
 }
 function guardarDatos(){
   guardarDatosLocal();
