@@ -775,12 +775,16 @@ function updateClock(){
 // ════════════════════════════════════════════
 function toast(msg,type='info'){
   const c=document.getElementById('toast-container');
+  if(!c)return;
   const d=document.createElement('div');
-  d.className='toast-item toast-'+(type==='ok'?'ok':type==='err'?'err':'info');
+  const t=(type==='ok'||type==='success')?'ok':(type==='err'||type==='error')?'err':'info';
+  d.className='toast-item toast-'+t;
   d.textContent=msg;
   c.appendChild(d);
   setTimeout(()=>d.remove(),3000);
 }
+// Alias: parte del código usa showToast con tipos 'success'/'error'
+function showToast(msg,type='info'){ return toast(msg,type); }
 
 // ════════════════════════════════════════════
 //  MODAL GLOBAL
@@ -1423,19 +1427,15 @@ function renderPropiedades(){
   const empty=document.getElementById('emptyProp');
   const count=document.getElementById('propiedadesCount');
   if(!tbody)return;
-  const fil=propiedades.filter(p=>{
-    const txt=(p.nombre+' '+(p.direccion||'')).toLowerCase();
-    return(!buscar||txt.includes(buscar))&&(!tipo||p.tipo===tipo)&&(!op||p.operacion===op)&&(!est||p.estado===est)&&(!ciudad||p.ciudad===ciudad||p.direccion===ciudad);
   const exclusivaF=(document.getElementById('filtroExclusivaP')||{}).value||'';
   const precioF=(document.getElementById('filtroPrecioP')||{}).value||'';
-  const fil2=fil.filter(p=>{
+  const fil=propiedades.filter(p=>{
+    const txt=(p.nombre+' '+(p.direccion||'')).toLowerCase();
+    if(!((!buscar||txt.includes(buscar))&&(!tipo||p.tipo===tipo)&&(!op||p.operacion===op)&&(!est||p.estado===est)&&(!ciudad||p.ciudad===ciudad||p.direccion===ciudad)))return false;
     if(exclusivaF==='si'&&!p.exclusiva)return false;
     if(exclusivaF==='no'&&p.exclusiva)return false;
-    if(precioF){const[mn,mx]=precioF.split('-').map(Number);const pr=Number(p.precio)||0;if(pr<mn||pr>mx)return false;}
+    if(precioF){const[mn,mx]=precioF.split('-').map(Number);const pr=Number(p.precio)||0;if(pr<mn||(mx&&pr>mx))return false;}
     return true;
-  });
-  // Re-assign fil to fil2 for rendering
-  fil.splice(0,fil.length,...fil2);
   });
   count.textContent=fil.length+' propiedad'+(fil.length!==1?'es':'');
   if(fil.length===0){tbody.innerHTML='';empty.style.display='block';return;}
