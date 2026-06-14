@@ -455,7 +455,7 @@ async function sbFetch(method,path,body=null){
     const opts={method,headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'resolution=merge-duplicates,return=minimal':''}};
     if(body) opts.body=JSON.stringify(body);
     const r=await fetch(SB_URL+path,opts);
-    if(r.status===204||r.status===200&&method==='POST') return true;
+    if(r.status===204||r.status===201||(r.status===200&&method==='POST')) return true;
     return r.json().catch(()=>null);
   }catch(e){console.warn('Supabase error:',e);return null;}
 }
@@ -465,16 +465,21 @@ async function sbLoadAll(){
   if(!Array.isArray(rows)) return;
   const map={};
   rows.forEach(r=>map[r.key]=r.value);
-  if(Array.isArray(map.clientes))     clientes=map.clientes;
-  if(Array.isArray(map.agentes))      agentes=map.agentes;
-  if(Array.isArray(map.alertas))      alertas=map.alertas;
-  if(Array.isArray(map.seguimientos)) seguimientos=map.seguimientos;
-  if(Array.isArray(map.usuarios))     usuarios=map.usuarios;
+  // Prefer cloud if cloud has data; keep local if cloud is empty (prevents overwriting unsaved data)
+  if(Array.isArray(map.clientes)     && (map.clientes.length>0     || clientes.length===0))     clientes=map.clientes;
+  if(Array.isArray(map.agentes)      && (map.agentes.length>0      || agentes.length===0))      agentes=map.agentes;
+  if(Array.isArray(map.alertas)      && (map.alertas.length>0      || alertas.length===0))      alertas=map.alertas;
+  if(Array.isArray(map.seguimientos) && (map.seguimientos.length>0 || seguimientos.length===0)) seguimientos=map.seguimientos;
+  if(Array.isArray(map.usuarios)     && (map.usuarios.length>0     || usuarios.length===0))     usuarios=map.usuarios;
   if(Array.isArray(map.contratos))    contratos=map.contratos;
   if(Array.isArray(map.propiedades) && map.propiedades.length>0){
-    // Merge cloud propiedades with local fotos
     const localFotos=propiedades.map(p=>p.fotos||[]);
     propiedades=map.propiedades.map((p,i)=>{p.fotos=localFotos[i]||p.fotos||[];return p;});
+  }
+  // Also restore modConfig from cloud if available
+  if(map.modConfig && typeof map.modConfig==='object') {
+    _modCfg=map.modConfig;
+    localStorage.setItem('nhgrup_modConfig_v3',JSON.stringify(_modCfg));
   }
   console.log('✅ Datos cargados desde Supabase');
 }
@@ -2052,13 +2057,21 @@ function renderModConfig(){
 }
 
 function modCfgToggle(mod,fi,val){
-  const cfg=getModCfg(); cfg[mod].fields[fi].active=val;
+  const cfg=getModCfg(); cfg[mod].fields[fi].active=val; autoSaveModCfg();
 }
 function modCfgRename(mod,fi,val){
-  const cfg=getModCfg(); cfg[mod].fields[fi].label=val;
+  const cfg=getModCfg(); cfg[mod].fields[fi].label=val; autoSaveModCfg();
+}
+function autoSaveModCfg(){
+  clearTimeout(autoSaveModCfg._t);
+  autoSaveModCfg._t=setTimeout(()=>{
+    const cfg=getModCfg();
+    localStorage.setItem('nhgrup_modConfig_v3',JSON.stringify(cfg));
+    sbFetch('POST','/rest/v1/erp_state',{key:'modConfig',value:cfg,updated_at:new Date().toISOString()});
+  },800);
 }
 function modCfgReq(mod,fi,val){
-  const cfg=getModCfg(); cfg[mod].fields[fi].required=val;
+  const cfg=getModCfg(); cfg[mod].fields[fi].required=val; autoSaveModCfg();
   // update color
   const row=document.getElementById('ftrow-'+mod+'-'+fi);
   if(row){ const sp=row.querySelector('.req-toggle span'); if(sp)sp.style.color=val?'var(--primary)':'var(--muted)';}
@@ -2081,7 +2094,8 @@ function modCfgAddField(mod){
 function guardarModConfig(){
   const cfg=getModCfg();
   localStorage.setItem('nhgrup_modConfig_v3',JSON.stringify(cfg));
-  showToast('Configuración guardada','success');
+  sbFetch('POST','/rest/v1/erp_state',{key:'modConfig',value:cfg,updated_at:new Date().toISOString()});
+  showToast('Configuración guardada ✓','success');
 }
 function resetModConfig(){
   _modCfg=JSON.parse(JSON.stringify(MOD_DEFAULTS));
