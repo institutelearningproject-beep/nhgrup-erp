@@ -307,6 +307,14 @@ select.filter-sel:focus{border-color:var(--accent)}
 .mod-cfg-header{background:var(--sidebar-bg) !important;padding:10px 16px !important;display:flex !important;align-items:center !important;justify-content:space-between !important}
 .field-lbl-inp{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-family:inherit;font-size:13px;color:var(--text);outline:none}
 .field-lbl-inp:focus{border-color:var(--accent)}
+.portal-card{background:var(--card);border:1px solid var(--border);border-radius:var(--rad);margin-bottom:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.portal-card-header{background:linear-gradient(135deg,var(--sidebar-bg),#2d2017);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.portal-card-header div:first-child div:first-child{color:#fff}
+.portal-card-header div:first-child div:last-child{color:rgba(255,255,255,.6)}
+.btn-notif-wa{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:#25D366;color:#fff;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:none;cursor:pointer}
+.btn-notif-mail{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:var(--primary);color:#fff;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;border:none;cursor:pointer}
+.btn-notif-portal{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:var(--bg2);color:var(--text);border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);cursor:pointer}
+.btn-notif-portal:hover,.btn-notif-mail:hover,.btn-notif-wa:hover{opacity:.85}
 .add-field-row{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
 .add-field-input{flex:1;border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-family:inherit;font-size:12px;outline:none}
 .add-field-input:focus{border-color:var(--accent)}
@@ -389,6 +397,10 @@ select.filter-sel:focus{border-color:var(--accent)}
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Configuración
       </div>
+      <div class="sb-item" onclick="openWin('portal')" data-mod="portal">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+        Portal Cliente
+      </div>
       <div class="sb-footer">
         <div class="sb-item" onclick="exportarDatos()" style="color:rgba(255,255,255,.45);font-size:12px">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -453,6 +465,7 @@ async function sbLoadAll(){
   if(Array.isArray(map.alertas))      alertas=map.alertas;
   if(Array.isArray(map.seguimientos)) seguimientos=map.seguimientos;
   if(Array.isArray(map.usuarios))     usuarios=map.usuarios;
+  if(Array.isArray(map.contratos))    contratos=map.contratos;
   if(Array.isArray(map.propiedades) && map.propiedades.length>0){
     // Merge cloud propiedades with local fotos
     const localFotos=propiedades.map(p=>p.fotos||[]);
@@ -568,6 +581,7 @@ const winMeta = {
   alertas:       {title:'Alertas',            w:860,  h:560, icon:'🔔'},
   agentes:       {title:'Agentes',            w:860,  h:540, icon:'🧑‍💼'},
   configuracion: {title:'Configuración',      w:820,  h:520, icon:'⚙️'},
+  portal:        {title:'Portal Cliente',      w:900,  h:580, icon:'📋'},
 };
 
 function openWin(mod){
@@ -588,7 +602,7 @@ function openWin(mod){
   win.className='win'; win.id='win-'+mod;
   win.style.cssText=`left:${Math.max(0,left)}px;top:${Math.max(0,top)}px;width:${meta.w}px;height:${meta.h}px;z-index:${++_zTop}`;
   const builders={inicio:buildInicio,propiedades:buildPropiedades,clientes:buildClientes,
-    seguimientos:buildSeguimientos,alertas:buildAlertas,agentes:buildAgentes,configuracion:buildConfiguracion};
+    seguimientos:buildSeguimientos,alertas:buildAlertas,agentes:buildAgentes,configuracion:buildConfiguracion,portal:buildPortal};
   const content=(builders[mod]?builders[mod]():'<p style="color:var(--muted);padding:20px">Módulo en construcción</p>');
   win.innerHTML=`
     <div class="win-titlebar" onmousedown="makeDrag(event,'${mod}')">
@@ -610,7 +624,7 @@ function openWin(mod){
   setTimeout(()=>{
     const renders={propiedades:renderPropiedades,clientes:renderClientes,
       seguimientos:renderSeguimientos,alertas:renderAlertas,agentes:renderAgentes,
-      configuracion:renderUsuarios,inicio:renderInicio};
+      configuracion:renderUsuarios,inicio:renderInicio,portal:renderPortal};
     if(renders[mod]) renders[mod]();
   },30);
 }
@@ -922,6 +936,224 @@ function buildAgentes(){
   </div>
 </div>`;
 }
+
+
+// ===== PORTAL CLIENTE MODULE =====
+let contratos = [];
+
+function buildPortal(){
+  return `<div>
+  <div class="toolbar">
+    <div class="filters">
+      <div class="search-wrap">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Buscar contrato…" id="searchContrato" oninput="renderPortal()"/>
+      </div>
+      <select class="filter-sel" id="filtroEstadoContrato" onchange="renderPortal()">
+        <option value="">Todos</option><option value="activo">Activo</option><option value="vencido">Vencido</option><option value="cerrado">Cerrado</option>
+      </select>
+      <select class="filter-sel" id="filtroTipoContrato" onchange="renderPortal()">
+        <option value="">Venta y Renta</option><option value="venta">Venta</option><option value="renta">Renta</option>
+      </select>
+    </div>
+    <button class="btn-add" onclick="abrirModalContrato()">+ Nuevo contrato</button>
+  </div>
+  <div style="padding:16px 20px">
+    <div id="emptyContratos" style="display:none;text-align:center;padding:40px;color:var(--muted)"><div style="font-size:36px;margin-bottom:8px">📋</div><div>Sin contratos registrados</div></div>
+    <div id="contratosList"></div>
+  </div></div>`;
+}
+
+function formatFecha(f){
+  if(!f) return '—';
+  const d=new Date(f+'T12:00:00');
+  return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function getEstadoContrato(c){
+  if(c.estado==='cerrado') return 'cerrado';
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  return new Date(c.fechaFin)<hoy?'vencido':'activo';
+}
+
+function getProxNotificacion(c){
+  const dias=c.frecuencia==='semanal'?7:15;
+  if(!c.historial||!c.historial.length){
+    const p=new Date(c.fechaInicio+'T12:00:00'); p.setDate(p.getDate()+dias); return p;
+  }
+  const p=new Date(c.historial[c.historial.length-1].fecha+'T12:00:00'); p.setDate(p.getDate()+dias); return p;
+}
+
+function renderPortal(){
+  const buscar=(document.getElementById('searchContrato')||{}).value?.toLowerCase()||'';
+  const estado=(document.getElementById('filtroEstadoContrato')||{}).value||'';
+  const tipo=(document.getElementById('filtroTipoContrato')||{}).value||'';
+  const list=document.getElementById('contratosList');
+  const empty=document.getElementById('emptyContratos');
+  if(!list) return;
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const fil=contratos.filter(c=>{
+    const txt=((c.nombreCliente||'')+(c.nombrePropiedad||'')+(c.whatsapp||'')+(c.correo||'')).toLowerCase();
+    if(buscar&&!txt.includes(buscar)) return false;
+    if(estado&&getEstadoContrato(c)!==estado) return false;
+    if(tipo&&c.tipo!==tipo) return false;
+    return true;
+  });
+  if(!fil.length){list.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  list.innerHTML=fil.map(c=>{
+    const idx=contratos.indexOf(c);
+    const est=getEstadoContrato(c);
+    const estCls={activo:'badge-green',vencido:'badge-red',cerrado:'badge-gray'};
+    const inicio=new Date(c.fechaInicio+'T12:00:00');
+    const fin=new Date(c.fechaFin+'T12:00:00');
+    const diasTotal=Math.max(1,Math.round((fin-inicio)/864e5));
+    const diasRest=Math.max(0,Math.round((fin-hoy)/864e5));
+    const pct=Math.min(100,Math.round((1-diasRest/diasTotal)*100));
+    const proxNotif=getProxNotificacion(c);
+    const diasNotif=Math.round((proxNotif-hoy)/864e5);
+    const portalUrl=location.origin+'/portal.html?id='+c.id;
+    const waMsg='Estimado/a '+c.nombreCliente+', le informamos sobre el estado de su propiedad "'+c.nombrePropiedad+'" con NH Bienes Raíces.\n\nAcciones realizadas: '+(c.ultimaAccion||'Publicación en portales')+'\n\nContrato vigente hasta: '+formatFecha(c.fechaFin)+'\n\nPortal de seguimiento:\n'+portalUrl+'\n\nNH Bienes Raíces - Propiedad y Diseño';
+    const mailBody='Estimado/a '+c.nombreCliente+',\n\nLe enviamos una actualización sobre su propiedad: '+c.nombrePropiedad+'\n\nAcciones: '+(c.ultimaAccion||'Publicación en portales')+'\nVigencia: '+formatFecha(c.fechaFin)+'\n\nPortal: '+portalUrl+'\n\nNH Bienes Raíces';
+    const barColor=pct>80?'var(--error)':pct>50?'var(--accent)':'var(--primary)';
+    const notifColor=diasNotif<=0?'color:var(--error);font-weight:700':diasNotif<=3?'color:var(--error)':diasNotif<=7?'color:var(--accent)':'color:var(--muted)';
+    const notifTxt=diasNotif<=0?'hoy':diasNotif===1?'mañana':diasNotif+' días';
+    const histHtml=c.historial&&c.historial.length?'<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px"><div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">HISTORIAL</div>'+c.historial.slice(-3).reverse().map(h=>'<div style="font-size:11px;color:var(--muted);padding:2px 0">• '+h.fecha+' — '+(h.tipo==='wa'?'💬 WhatsApp':h.tipo==='mail'?'📧 Correo':'📋 Manual')+': '+(h.nota||'Notificación enviada')+'</div>').join('')+'</div>':'';
+    return '<div class="portal-card">'+
+      '<div class="portal-card-header">'+
+        '<div><div style="font-weight:700;font-size:15px;color:#fff">'+c.nombrePropiedad+'</div>'+
+        '<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:2px">'+c.nombreCliente+' · '+(c.tipo==='venta'?'Venta':'Renta')+'</div></div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<span class="badge '+(estCls[est]||'badge-gray')+'">'+est.charAt(0).toUpperCase()+est.slice(1)+'</span>'+
+          '<button class="btn-icon" onclick="abrirModalContrato('+idx+')" title="Editar">✏️</button>'+
+          '<button class="btn-icon del" onclick="eliminarContrato('+idx+')" title="Eliminar">🗑</button>'+
+        '</div></div>'+
+      '<div style="padding:12px 16px">'+
+        '<div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap">'+
+          '<div style="font-size:12px"><span style="color:var(--muted)">Inicio:</span> <b>'+formatFecha(c.fechaInicio)+'</b></div>'+
+          '<div style="font-size:12px"><span style="color:var(--muted)">Fin:</span> <b>'+formatFecha(c.fechaFin)+'</b></div>'+
+          '<div style="font-size:12px"><span style="color:var(--muted)">Restantes:</span> <b style="color:'+(diasRest<30?'var(--error)':'var(--primary)')+'">'+diasRest+' días</b></div>'+
+          '<div style="font-size:12px"><span style="color:var(--muted)">Frecuencia:</span> <b>'+(c.frecuencia==='semanal'?'Semanal':'Cada 15 días')+'</b></div>'+
+        '</div>'+
+        '<div style="background:var(--bg2);border-radius:6px;height:8px;margin-bottom:10px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:6px;transition:.3s"></div></div>'+
+        '<div style="font-size:12px;margin-bottom:10px;'+notifColor+'">📅 Próxima notificación: '+formatFecha(proxNotif)+' ('+notifTxt+')</div>'+
+        (c.ultimaAccion?'<div style="font-size:12px;color:var(--muted);margin-bottom:10px">📝 '+c.ultimaAccion+'</div>':'')+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+          (c.whatsapp?'<a href="https://wa.me/'+c.whatsapp.replace(/\D/g,'')+'?text='+encodeURIComponent(waMsg)+'" target="_blank" class="btn-notif-wa">💬 WhatsApp</a>':'')+
+          (c.correo?'<a href="mailto:'+c.correo+'?subject=Actualización+de+su+propiedad+-+NH+Bienes+Raíces&body='+encodeURIComponent(mailBody)+'" class="btn-notif-mail">📧 Correo</a>':'')+
+          '<button class="btn-notif-portal" onclick="copyPortalLink(\''+c.id+'\')">🔗 Link portal</button>'+
+          '<button class="btn-icon" onclick="registrarNotif('+idx+')" style="font-size:11px;padding:4px 10px" title="Marcar notificación enviada">✅ Notificado</button>'+
+        '</div>'+histHtml+
+      '</div></div>';
+  }).join('');
+}
+
+function copyPortalLink(id){
+  const url=location.origin+'/portal.html?id='+id;
+  navigator.clipboard.writeText(url).then(()=>showToast('Link copiado 🔗','success')).catch(()=>showToast(url,'info'));
+}
+
+function abrirModalContrato(idx=null){
+  const c=idx!==null?contratos[idx]:{};
+  const hoy=new Date().toISOString().split('T')[0];
+  const fin6m=new Date(); fin6m.setMonth(fin6m.getMonth()+6);
+  const fin6mStr=fin6m.toISOString().split('T')[0];
+  abrirModal(`<div class="modal-header"><h3>${idx===null?'Nuevo contrato':'Editar contrato'}</h3></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nombre del cliente *</label><input class="fi" id="ctNombreCliente" value="${c.nombreCliente||''}" placeholder="Nombre completo del propietario"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label>WhatsApp</label><input class="fi" id="ctWhatsapp" value="${c.whatsapp||''}" placeholder="+52 722 123 4567"/></div>
+        <div class="form-group"><label>Correo electrónico</label><input class="fi" id="ctCorreo" type="email" value="${c.correo||''}" placeholder="cliente@email.com"/></div>
+      </div>
+      <div class="form-group"><label>Propiedad *</label><input class="fi" id="ctNombrePropiedad" value="${c.nombrePropiedad||''}" placeholder="Casa en Metepec, Toluca..."/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div class="form-group"><label>Tipo</label>
+          <select class="fi" id="ctTipo">
+            <option value="venta" ${c.tipo==='venta'?'selected':''}>Venta</option>
+            <option value="renta" ${c.tipo==='renta'?'selected':''}>Renta</option>
+          </select></div>
+        <div class="form-group"><label>Frecuencia</label>
+          <select class="fi" id="ctFrecuencia">
+            <option value="quincenal" ${c.frecuencia==='quincenal'||!c.frecuencia?'selected':''}>Cada 15 días</option>
+            <option value="semanal" ${c.frecuencia==='semanal'?'selected':''}>Semanal</option>
+          </select></div>
+        <div class="form-group"><label>Precio</label><input class="fi" id="ctPrecio" value="${c.precio||''}" placeholder="$2,500,000"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label>Fecha inicio</label><input class="fi" id="ctFechaInicio" type="date" value="${c.fechaInicio||hoy}"/></div>
+        <div class="form-group"><label>Fecha fin (6 meses)</label><input class="fi" id="ctFechaFin" type="date" value="${c.fechaFin||fin6mStr}"/></div>
+      </div>
+      <div class="form-group"><label>Última acción realizada</label><input class="fi" id="ctUltimaAccion" value="${c.ultimaAccion||''}" placeholder="Publicación en portales, visitas agendadas..."/></div>
+      <div class="form-group"><label>Estado del contrato</label>
+        <select class="fi" id="ctEstado">
+          <option value="activo" ${c.estado!=='cerrado'?'selected':''}>Activo</option>
+          <option value="cerrado" ${c.estado==='cerrado'?'selected':''}>Cerrado / Finalizado</option>
+        </select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-save" onclick="guardarContrato(${idx})">Guardar</button>
+    </div>`,'520px');
+  setTimeout(()=>{
+    const fi=document.getElementById('ctFechaInicio');
+    if(fi) fi.addEventListener('change',function(){
+      const d=new Date(this.value+'T12:00:00'); d.setMonth(d.getMonth()+6);
+      document.getElementById('ctFechaFin').value=d.toISOString().split('T')[0];
+    });
+  },100);
+}
+
+function guardarContrato(idx=null){
+  const nombre=(document.getElementById('ctNombreCliente').value||'').trim();
+  const prop=(document.getElementById('ctNombrePropiedad').value||'').trim();
+  if(!nombre||!prop){showToast('Nombre del cliente y propiedad son requeridos','error');return;}
+  const rec={
+    id:idx!==null?contratos[idx].id:('ct_'+Date.now()),
+    nombreCliente:nombre,
+    whatsapp:(document.getElementById('ctWhatsapp').value||'').trim(),
+    correo:(document.getElementById('ctCorreo').value||'').trim(),
+    nombrePropiedad:prop,
+    tipo:document.getElementById('ctTipo').value,
+    frecuencia:document.getElementById('ctFrecuencia').value,
+    fechaInicio:document.getElementById('ctFechaInicio').value,
+    fechaFin:document.getElementById('ctFechaFin').value,
+    ultimaAccion:(document.getElementById('ctUltimaAccion').value||'').trim(),
+    precio:(document.getElementById('ctPrecio').value||'').trim(),
+    estado:document.getElementById('ctEstado').value,
+    historial:idx!==null?(contratos[idx].historial||[]):[]
+  };
+  if(idx===null) contratos.push(rec); else contratos[idx]=rec;
+  guardarContratos();
+  cerrarModal();
+  renderPortal();
+  showToast('Contrato guardado ✅','success');
+}
+
+function eliminarContrato(idx){
+  if(!confirm('¿Eliminar este contrato?')) return;
+  contratos.splice(idx,1);
+  guardarContratos();
+  renderPortal();
+  showToast('Contrato eliminado','info');
+}
+
+function registrarNotif(idx){
+  if(!contratos[idx].historial) contratos[idx].historial=[];
+  contratos[idx].historial.push({fecha:new Date().toISOString().split('T')[0],tipo:'manual',nota:'Notificación enviada'});
+  guardarContratos();
+  renderPortal();
+  showToast('Notificación registrada ✅','success');
+}
+
+function guardarContratos(){
+  try{localStorage.setItem('nhgrup_contratos_v3',JSON.stringify(contratos));}catch(e){}
+  sbFetch('POST','/rest/v1/erp_state',{key:'contratos',value:contratos,updated_at:new Date().toISOString()});
+}
+
+function cargarContratos(){
+  try{const d=JSON.parse(localStorage.getItem('nhgrup_contratos_v3')||'null');if(Array.isArray(d)) contratos=d;}catch(e){}
+}
+// ===== FIN PORTAL CLIENTE =====
 function buildConfiguracion(){
   return`<div>
   <div class="cfg-tabs" id="cfgTabsBar">
@@ -1972,6 +2204,7 @@ function guardarDatos(){
   sbSyncDatos();
 }
 function cargarDatos(){
+  cargarContratos();
   try{
     const d=JSON.parse(localStorage.getItem(LS)||'null');
     if(!d)return;

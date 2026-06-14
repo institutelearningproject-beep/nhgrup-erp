@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Portal de Seguimiento — NH Bienes Raíces</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f7f4ef;color:#1a1410;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a1410,#2d2017);padding:20px;display:flex;align-items:center;gap:14px}
+.header img{height:52px;width:auto;background:#fff;border-radius:8px;padding:4px}
+.header-text h1{color:#d4a843;font-size:18px;font-weight:800}
+.header-text p{color:rgba(255,255,255,.6);font-size:12px;margin-top:2px}
+.container{max-width:680px;margin:0 auto;padding:20px 16px 40px}
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.08);overflow:hidden;margin-bottom:16px}
+.card-header{background:linear-gradient(135deg,#1a1410,#2d2017);padding:16px 20px}
+.card-header h2{color:#d4a843;font-size:16px;font-weight:700}
+.card-header p{color:rgba(255,255,255,.6);font-size:12px;margin-top:3px}
+.card-body{padding:18px 20px}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:#f7f4ef;border-radius:10px;padding:12px 14px;text-align:center}
+.stat-val{font-size:22px;font-weight:800;color:#b45309}
+.stat-lbl{font-size:11px;color:#8a7560;margin-top:3px}
+.progress-wrap{margin:12px 0}
+.progress-lbl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
+.progress-lbl span:first-child{color:#8a7560}
+.progress-lbl span:last-child{font-weight:700;color:#b45309}
+.progress-bar{background:#f0ebe3;border-radius:20px;height:10px;overflow:hidden}
+.progress-fill{height:100%;border-radius:20px;transition:.6s}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.info-item label{font-size:10px;font-weight:700;color:#8a7560;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
+.info-item span{font-size:13px;font-weight:600;color:#1a1410}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:#d1fae5;color:#065f46}
+.badge-amber{background:#fef3c7;color:#92400e}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-gray{background:#f3f4f6;color:#6b7280}
+.notif-card{background:#fffbf5;border:1px solid #f0ebe3;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px}
+.notif-icon{font-size:20px;flex-shrink:0}
+.notif-date{font-size:11px;color:#8a7560;margin-top:2px}
+.notif-text{font-size:13px;font-weight:600;color:#1a1410}
+.alert-box{background:#fff7ed;border:1.5px solid #f59e0b;border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.alert-box.red{background:#fef2f2;border-color:#ef4444}
+.contact-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none;width:100%;margin-bottom:10px;border:none;cursor:pointer}
+.btn-wa{background:#25D366;color:#fff}
+.btn-mail{background:#b45309;color:#fff}
+.footer{text-align:center;padding:20px;color:#8a7560;font-size:12px}
+.loading{text-align:center;padding:60px 20px;color:#8a7560}
+.loading .spinner{width:40px;height:40px;border:4px solid #f0ebe3;border-top-color:#b45309;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.not-found{text-align:center;padding:60px 20px}
+.not-found div:first-child{font-size:48px;margin-bottom:12px}
+.not-found h2{color:#1a1410;margin-bottom:8px}
+.not-found p{color:#8a7560;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-text">
+    <h1>NH Bienes Raíces</h1>
+    <p>Portal de Seguimiento de Propiedad</p>
+  </div>
+</div>
+
+<div class="container" id="app">
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Cargando información de su propiedad…</p>
+  </div>
+</div>
+
+<div class="footer">
+  NH Bienes Raíces — Propiedad y Diseño &nbsp;|&nbsp; Este portal es de uso exclusivo del cliente propietario.
+</div>
+
+<script>
+const SB_URL='https://wddukergshmcamvuvznu.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZHVrZXJnc2htY2FtdnV2em51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzOTk0MzYsImV4cCI6MjA5Njk3NTQzNn0.POQ2h3O6cpx5G1Ya_LpjgvfpJPFqMVroBa5CFtfY8IA';
+
+function getParam(k){return new URLSearchParams(location.search).get(k);}
+
+function formatFecha(f){
+  if(!f) return '—';
+  const d=new Date(f+'T12:00:00');
+  return d.toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+}
+
+function diasEntre(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);}
+
+async function cargarContrato(){
+  const id=getParam('id');
+  const app=document.getElementById('app');
+  const loading=document.getElementById('loading');
+
+  if(!id){
+    loading.innerHTML='';
+    app.innerHTML='<div class="not-found"><div>🔍</div><h2>Link inválido</h2><p>Este portal requiere un identificador de contrato válido.</p></div>';
+    return;
+  }
+
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/erp_state?key=eq.contratos&select=value',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    const rows=await r.json();
+    const contratos=rows&&rows[0]?rows[0].value:[];
+    const c=contratos.find(x=>x.id===id);
+
+    if(!c){
+      loading.innerHTML='';
+      app.innerHTML='<div class="not-found"><div>📋</div><h2>Contrato no encontrado</h2><p>No encontramos información asociada a este link.<br>Contacte a su agente NH Bienes Raíces.</p></div>';
+      return;
+    }
+
+    const hoy=new Date(); hoy.setHours(0,0,0,0);
+    const fin=new Date(c.fechaFin+'T12:00:00');
+    const inicio=new Date(c.fechaInicio+'T12:00:00');
+    const diasTotal=Math.max(1,diasEntre(c.fechaInicio,c.fechaFin));
+    const diasRest=Math.max(0,Math.round((fin-hoy)/864e5));
+    const diasTrans=Math.max(0,Math.round((hoy-inicio)/864e5));
+    const pct=Math.min(100,Math.round(diasTrans/diasTotal*100));
+    const vencido=fin<hoy;
+    const cerrado=c.estado==='cerrado';
+
+    const barColor=pct>80?'#ef4444':pct>50?'#f59e0b':'#b45309';
+    const estBadge=cerrado?'badge-gray':vencido?'badge-red':'badge-green';
+    const estTxt=cerrado?'Cerrado':vencido?'Vencido':'Activo';
+
+    const proxNotifFn=()=>{
+      const dias=c.frecuencia==='semanal'?7:15;
+      if(!c.historial||!c.historial.length){const p=new Date(inicio);p.setDate(p.getDate()+dias);return p;}
+      const p=new Date(c.historial[c.historial.length-1].fecha+'T12:00:00');p.setDate(p.getDate()+dias);return p;
+    };
+    const proxNotif=proxNotifFn();
+    const diasNotif=Math.round((proxNotif-hoy)/864e5);
+
+    const alertHtml=(!cerrado&&!vencido&&diasNotif<=3)?
+      `<div class="alert-box"><span style="font-size:20px">🔔</span><div><div style="font-weight:700;font-size:13px">Próxima actualización</div><div style="font-size:12px;color:#92400e">Su agente le contactará ${diasNotif<=0?'hoy':diasNotif===1?'mañana':'en '+diasNotif+' días'} (${formatFecha(proxNotif.toISOString().split('T')[0])})</div></div></div>`:
+      (!cerrado&&!vencido)?`<div class="alert-box"><span style="font-size:20px">📅</span><div><div style="font-weight:700;font-size:13px">Próxima actualización</div><div style="font-size:12px;color:#92400e">${formatFecha(proxNotif.toISOString().split('T')[0])}</div></div></div>`:'';
+
+    const histHtml=c.historial&&c.historial.length?
+      `<div class="card">
+        <div class="card-header"><h2>📋 Historial de seguimientos</h2><p>${c.historial.length} notificación${c.historial.length!==1?'es':''} enviada${c.historial.length!==1?'s':''}</p></div>
+        <div class="card-body">
+          ${c.historial.slice().reverse().map(h=>`
+            <div class="notif-card">
+              <div class="notif-icon">${h.tipo==='wa'?'💬':h.tipo==='mail'?'📧':'📋'}</div>
+              <div><div class="notif-text">${h.nota||'Notificación enviada'}</div><div class="notif-date">${formatFecha(h.fecha)}</div></div>
+            </div>`).join('')}
+        </div>
+      </div>`:'';
+
+    const waMsg='Hola, tengo una consulta sobre mi propiedad "'+c.nombrePropiedad+'" con NH Bienes Raíces.';
+
+    app.innerHTML=`
+      ${alertHtml}
+      <div class="card">
+        <div class="card-header">
+          <h2>${c.nombrePropiedad}</h2>
+          <p>${c.tipo==='venta'?'En venta':'En renta'} · <span class="badge ${estBadge}">${estTxt}</span></p>
+        </div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat"><div class="stat-val">${diasRest}</div><div class="stat-lbl">Días restantes</div></div>
+            <div class="stat"><div class="stat-val">${diasTrans}</div><div class="stat-lbl">Días en gestión</div></div>
+            <div class="stat"><div class="stat-val">${c.historial?c.historial.length:0}</div><div class="stat-lbl">Actualizaciones</div></div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-lbl"><span>Tiempo del contrato</span><span>${pct}% transcurrido</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
+          </div>
+          <div class="info-grid">
+            <div class="info-item"><label>Propietario</label><span>${c.nombreCliente}</span></div>
+            <div class="info-item"><label>Tipo</label><span>${c.tipo==='venta'?'Venta':'Renta'}</span></div>
+            <div class="info-item"><label>Inicio de contrato</label><span>${formatFecha(c.fechaInicio)}</span></div>
+            <div class="info-item"><label>Fin de contrato</label><span>${formatFecha(c.fechaFin)}</span></div>
+            ${c.precio?`<div class="info-item"><label>Precio</label><span>${c.precio}</span></div>`:''}
+            <div class="info-item"><label>Frecuencia actualización</label><span>${c.frecuencia==='semanal'?'Semanal':'Cada 15 días'}</span></div>
+          </div>
+          ${c.ultimaAccion?`<div style="margin-top:14px;background:#f7f4ef;border-radius:10px;padding:12px 14px"><div style="font-size:11px;font-weight:700;color:#8a7560;margin-bottom:4px">ÚLTIMA ACCIÓN REALIZADA</div><div style="font-size:13px;color:#1a1410">${c.ultimaAccion}</div></div>`:''}
+        </div>
+      </div>
+      ${histHtml}
+      <div class="card">
+        <div class="card-header"><h2>📞 Contactar a NH Bienes Raíces</h2><p>¿Tiene preguntas? Contáctenos directamente</p></div>
+        <div class="card-body">
+          ${c.whatsapp?`<a href="https://wa.me/${c.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(waMsg)}" target="_blank" class="contact-btn btn-wa">💬 WhatsApp</a>`:''}
+          ${c.correo?`<a href="mailto:${c.correo}?subject=Consulta sobre mi propiedad - ${c.nombrePropiedad}" class="contact-btn btn-mail">📧 Enviar correo</a>`:''}
+        </div>
+      </div>`;
+  }catch(e){
+    app.innerHTML='<div class="not-found"><div>⚠️</div><h2>Error de conexión</h2><p>No se pudo cargar la información. Intente más tarde.</p></div>';
+    console.error(e);
+  }
+}
+
+cargarContrato();
+</script>
+</body>
+</html>

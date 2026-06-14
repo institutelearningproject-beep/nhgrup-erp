@@ -1,7 +1,1 @@
-{
-  "name": "nhgrup-erp",
-  "outputDirectory": ".",
-  "rewrites": [
-    { "source": "/", "destination": "/erp-nhgrup-v3.html" }
-  ]
-}
+{"name":"nhgrup-erp","outputDirectory":".","rewrites":[{"source":"/","destination":"/erp-nhgrup-v3.html"},{"source":"/portal","destination":"/portal.html"}]}
