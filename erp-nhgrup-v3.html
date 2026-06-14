@@ -1351,6 +1351,7 @@ function buildConfiguracion(){
       <button class="btn-add" onclick="abrirModalUsuario()">+ Nuevo usuario</button>
     </div>
   </div>
+  <div class="count-label" id="usuariosCount"></div>
   <div style="padding:0 20px 20px">
     <div id="emptyUsuarios" style="display:none;text-align:center;padding:40px;color:var(--muted)">Sin usuarios</div>
     <table class="table" id="usuariosTable"><thead><tr>
@@ -2119,12 +2120,12 @@ function renderUsuarios(){
   const count=document.getElementById('usuariosCount');
   if(!tbody)return;
   const fil=usuarios.filter(u=>{
-    const txt=(u.nombre+' '+u.apellido+' '+u.correo).toLowerCase();
+    const txt=((u.nombre||'')+' '+(u.apellido||'')+' '+(u.correo||'')).toLowerCase();
     return(!buscar||txt.includes(buscar))&&(!rol||u.rol===rol)&&(!est||u.estado===est);
   });
-  count.textContent=fil.length+' usuario'+(fil.length!==1?'s':'');
-  if(fil.length===0){tbody.innerHTML='';empty.style.display='block';return;}
-  empty.style.display='none';
+  if(count)count.textContent=fil.length+' usuario'+(fil.length!==1?'s':'');
+  if(fil.length===0){tbody.innerHTML='';if(empty)empty.style.display='block';return;}
+  if(empty)empty.style.display='none';
   const rolCls={admin:'badge-amber',supervisor:'badge-purple',agente:'badge-blue'};
   tbody.innerHTML=fil.map(u=>{
     const idx=usuarios.indexOf(u);

@@ -4,6 +4,4 @@
   "rewrites": [
     {"source": "/erp", "destination": "/erp-nhgrup-v3.html"},
     {"source": "/portal", "destination": "/portal.html"},
-    {"source": "/", "destination": "/erp-nhgrup-v3.html"}
-  ]
-}
+    {"source": "/", "destination": "/erp-nhgrup-v3.html"
