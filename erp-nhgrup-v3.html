@@ -428,6 +428,56 @@ select.filter-sel:focus{border-color:var(--accent)}
 <div id="toast-container"></div>
 
 <script>
+
+// ========== SUPABASE CONFIG ==========
+const SB_URL='https://wddukergshmcamvuvznu.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkZHVrZXJnc2htY2FtdnV2em51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzOTk0MzYsImV4cCI6MjA5Njk3NTQzNn0.POQ2h3O6cpx5G1Ya_LpjgvfpJPFqMVroBa5CFtfY8IA';
+
+async function sbFetch(method,path,body=null){
+  try{
+    const opts={method,headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'resolution=merge-duplicates,return=minimal':''}};
+    if(body) opts.body=JSON.stringify(body);
+    const r=await fetch(SB_URL+path,opts);
+    if(r.status===204||r.status===200&&method==='POST') return true;
+    return r.json().catch(()=>null);
+  }catch(e){console.warn('Supabase error:',e);return null;}
+}
+
+async function sbLoadAll(){
+  const rows=await sbFetch('GET','/rest/v1/erp_state?select=key,value');
+  if(!Array.isArray(rows)) return;
+  const map={};
+  rows.forEach(r=>map[r.key]=r.value);
+  if(Array.isArray(map.clientes))     clientes=map.clientes;
+  if(Array.isArray(map.agentes))      agentes=map.agentes;
+  if(Array.isArray(map.alertas))      alertas=map.alertas;
+  if(Array.isArray(map.seguimientos)) seguimientos=map.seguimientos;
+  if(Array.isArray(map.usuarios))     usuarios=map.usuarios;
+  if(Array.isArray(map.propiedades) && map.propiedades.length>0){
+    // Merge cloud propiedades with local fotos
+    const localFotos=propiedades.map(p=>p.fotos||[]);
+    propiedades=map.propiedades.map((p,i)=>{p.fotos=localFotos[i]||p.fotos||[];return p;});
+  }
+  console.log('✅ Datos cargados desde Supabase');
+}
+
+async function sbSave(key){
+  let val;
+  if(key==='propiedades') val=propiedades.map(p=>{const c={...p};c.fotos=[];return c;});
+  else if(key==='clientes') val=clientes;
+  else if(key==='agentes') val=agentes;
+  else if(key==='alertas') val=alertas;
+  else if(key==='seguimientos') val=seguimientos;
+  else if(key==='usuarios') val=usuarios;
+  else return;
+  await sbFetch('POST','/rest/v1/erp_state',{key,value:val,updated_at:new Date().toISOString()});
+}
+
+function sbSyncDatos(){
+  ['clientes','agentes','alertas','seguimientos','usuarios','propiedades'].forEach(k=>sbSave(k));
+}
+// ========== FIN SUPABASE ==========
+
 // ════════════════════════════════════════════
 //  DATOS GLOBALES
 // ════════════════════════════════════════════
@@ -643,6 +693,10 @@ function doLogin(){
     updateClock();
     setInterval(updateClock,1000);
     cargarDatos();
+    sbLoadAll().then(()=>{
+      renderCurrentModule();
+      showToast('Datos sincronizados con la nube ☁️','success');
+    }).catch(()=>showToast('Sin conexión — usando datos locales','info'));
     openWin('inicio');
   } else {
     document.getElementById('loginErr').style.display='block';
@@ -1905,8 +1959,17 @@ function openDetalleWin(id,title,w,h,bodyContent){
 //  PERSISTENCIA localStorage
 // ════════════════════════════════════════════
 const LS='nhgrup_erp_v3';
+function renderCurrentModule(){
+  const active=document.querySelector('.win-body[id]');
+  if(!active) return;
+  if(clientes.length) renderClientes();
+  if(agentes.length) renderAgentes();
+  if(alertas.length) renderAlertas();
+  if(seguimientos.length) renderSeguimientos();
+}
 function guardarDatos(){
   try{localStorage.setItem(LS,JSON.stringify({clientes,propiedades,seguimientos,alertas,agentes,usuarios}));}catch(e){}
+  sbSyncDatos();
 }
 function cargarDatos(){
   try{
